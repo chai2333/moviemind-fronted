@@ -1,0 +1,160 @@
+/* 全局基础样式 + 经典布局 */
+body, html { margin:0; padding:0; font-family: 'PingFang SC', sans-serif; background: #f5f5f5; }
+#app { min-height:100vh; display:flex; flex-direction:column; }
+a { text-decoration:none; }
+
+/* 顶部导航 */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Logo */
+.navbar-logo {
+  height: 40px;
+  margin-right: 8px;
+}
+
+/* Logo 右侧的文字 */
+.navbar-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #5c6bc0;
+  margin-right: 24px;
+}
+
+/* 菜单 */
+.navbar-menu {
+  display: flex;
+}
+.navbar-menu-item {
+  margin: 0 12px;
+  padding: 16px 0;
+  cursor: pointer;
+  position: relative;
+  color: #333;
+}
+.navbar-menu-item.active {
+  color: #5c6bc0;
+}
+.navbar-menu-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 2px;
+  background: #5c6bc0;
+}
+.navbar-search {
+  flex: none;
+  width: 240px;
+  margin: 0 16px;
+  position: relative;
+}
+.navbar-search input {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+}
+.navbar-search .icon-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+/* 账户区 放到最右边 */
+.navbar-account {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+}
+.navbar-account .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.navbar-account .username {
+  margin-right: 16px;
+}
+/* 未登录链接样式 */
+.navbar-account .auth-link {
+  margin-left: 12px;
+  color: #5c6bc0;
+  cursor: pointer;
+}
+
+.navbar-account img { width:32px; height:32px; border-radius:50%; margin-right:8px; }
+
+/* 登录/注册背景与卡片 */
+
+.auth-page { flex:1; display:flex; align-items:center; justify-content:center; background:url('@/assets/auth-bg.png') center/cover no-repeat; position:relative; }
+.auth-overlay { position:absolute; inset:0; background:rgba(92,107,192,0.7); }
+.auth-card { position:relative; background:#f3f3ff; border-radius:24px; padding:40px; width:360px; box-shadow:0 8px 16px rgba(0,0,0,0.2); z-index:1; }
+.auth-card .logo { display:block; margin:0 auto 24px; width:64px; }
+.auth-card h2 { text-align:center; margin-bottom:24px; color:#5c6bc0; }
+.auth-card .el-form-item__content { margin-bottom:16px; }
+/* .auth-card .el-input__inner { border-radius:20px; background:#e8e8ff; } */
+.auth-card .auth-actions { text-align:center; margin-top:16px; }
+.auth-card .auth-actions a { margin-left:8px; color:#5c6bc0; }
+
+/* 首页 Top100 列表 */
+.home { flex:1; padding:24px; background:#fff; }
+.home h1 { font-size:28px; margin-bottom:24px; }
+.movie-item { display:flex; padding:16px; border-bottom:1px solid #e0e0e0; align-items:center; }
+.movie-item .rank { width:40px; font-size:24px; color:#ff7043; }
+.movie-item .poster { width:100px; height:140px; object-fit:cover; border-radius:8px; margin:0 16px; }
+.movie-item .info { flex:1; }
+.movie-item .info h3 { margin:0; font-size:20px; }
+.movie-item .info p { margin:4px 0; color:#555; }
+.movie-item .rating { width:120px; text-align:right; }
+.movie-item .rating-score { font-size:20px; color:#333; }
+.movie-item .rating-stars { margin-top:4px; }
+
+/* AI 推荐页 */
+.recommend { flex:1; padding:24px; background:#fff; }
+.recommend-search { display:flex; max-width:600px; margin:100px auto; }
+.recommend-search input { flex:1; padding:12px 16px; border:1px solid #ddd; border-radius:24px 0 0 24px; }
+.recommend-search button { padding:12px 24px; border:none; background:#5c6bc0; color:#fff; border-radius:0 24px 24px 0; cursor:pointer; }
+
+/* 搜索结果 */
+.search-results { padding: 24px; }
+.search-results h2 { font-size: 24px; margin-bottom: 16px; }
+.search-item {
+  display: flex;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.search-item img {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 16px;
+}
+.search-item .details { flex: 1; }
+.search-item .details h3 { margin: 0; font-size: 18px; }
+.search-item .details .date { color: #999; margin: 4px 0; }
+.search-item .details p { color: #666; font-size: 14px; }
+.search-item .meta {
+  text-align: right;
+  width: 120px;
+}
+.search-item .meta .score {
+  font-size: 18px;
+  color: #333;
+}
+.search-item .meta .stars { margin:4px 0; }
+
+/* 滚动条细节 */
+::-webkit-scrollbar { width:8px; }
+::-webkit-scrollbar-thumb { background:#5c6bc0; border-radius:4px; }
