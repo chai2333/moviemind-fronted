@@ -1,7 +1,7 @@
 <template>
     <div class="search-results">
       <h2>搜索结果如下</h2>
-      <div v-for="mov in movies" :key="mov.id" class="search-item">
+      <div v-for="mov in movies" :key="mov.id" class="search-item" @click="goDetail(mov.id)">
         <img :src="mov.image || mov.images?.[0]" alt="" />
         <div class="details">
           <h3>{{ mov.name }}</h3>
@@ -14,15 +14,23 @@
         </div>
       </div>
     </div>
+
+    
   </template>
   
   <script setup>
   import { ref, onMounted, watch } from 'vue'
   import { useRoute } from 'vue-router'
   import api from '@/services/api'
+  import { useRouter } from 'vue-router'
   
   const route = useRoute()
   const movies = ref([])
+  const router = useRouter()
+
+  function goDetail(id) {
+  router.push({ name: 'MovieDetail', params: { id } })
+}
   
   async function fetchSearch() {
     const q = route.query.q

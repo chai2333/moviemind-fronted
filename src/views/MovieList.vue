@@ -6,6 +6,7 @@
           v-for="(mov, idx) in movies"
           :key="mov.id"
           class="movie-item"
+          @click="goDetail(mov.id)"
         >
           <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
           <img :src="mov.image" class="poster" />
@@ -39,14 +40,20 @@
   //模拟
   import { ref, onMounted } from 'vue'
   import { mockMovies } from '@/services/mockMovies.js'
+  import { useRouter } from 'vue-router'
   
   const movies = ref([])
+  const router = useRouter()
   
   function starStyle(n, rating) {
     const half = Math.ceil(rating/2)
     if (n <= Math.floor(rating/2)) return { color: '#FF9800' }
     if (n === half) return { color: '#FF980080' }
     return { color: '#ccc' }
+  }
+
+  function goDetail(id) {
+    router.push({ name: 'MovieDetail', params: { id } })
   }
   
   async function fetchMovies() {

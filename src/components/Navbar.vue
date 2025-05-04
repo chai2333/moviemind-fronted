@@ -23,8 +23,10 @@
     <!-- 账户区：已登录显示头像+用户名，未登录显示 登录/注册 -->
     <div class="navbar-account">
       <template v-if="isAuth">
-        <img :src="auth.user.avatar || '/default-avatar.png'" class="avatar" alt="头像" />
-        <span class="username">{{ auth.user.username }}</span>
+        <div class="user-info" @click="goProfile" style="cursor: pointer;">
+          <img :src="auth.user.avatar || '/default-avatar.png'" class="avatar" alt="头像" />
+          <span class="username">{{ auth.user.username }}</span>
+        </div>
       </template>
       <template v-else>
         <router-link to="/login" class="auth-link">登录</router-link>
@@ -49,8 +51,28 @@ function onSearch() {
     router.push({ name: 'Search', query: { q: keyword.value } })
   }
 }
+
+function goProfile() {
+  router.push({ name: 'Profile' }).catch(() => {})
+}
+
+
 </script>
 
 <style scoped>
+.user-info:hover {
+  opacity: 0.8;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.username {
+  vertical-align: middle;
+  font-weight: bold;
+}
+
 
 </style>
