@@ -70,7 +70,7 @@ const onRecommend = async () => {
       withCredentials: false
     });
 
-    // 4. 处理返回文本
+    //处理返回文本
     let originalText = res.data.textResponse;
 
     originalText = originalText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
@@ -78,16 +78,14 @@ const onRecommend = async () => {
     originalText = originalText.replace(/\*{4}([^*]+)\*{4}/g, '<strong>$1</strong>');
     originalText = originalText.replace(/\*{2}([^*]+)\*{2}/g, '<strong>$1</strong>');
 
-    // 5. 添加机器人回复气泡
     messages.value.push({ role: 'robot', message: originalText });
 
-    // 如果你还需要保留这个记录
     previousAnswers.value.push(res.data.textResponse);
 
   } catch (error) {
     console.error('获取回复失败:', error);
   } finally {
-    isLoading.value = false;  // 隐藏 loading
+    isLoading.value = false;
     scrollToBottom();
   }
 };
@@ -103,7 +101,7 @@ const onRecommend = async () => {
 }
 
 .message-bubble {
-  margin-bottom: 16px; /* 控制两个气泡之间的间距 */
+  margin-bottom: 16px; 
   max-width: 70%;
   padding: 12px 16px;
   border-radius: 16px;
@@ -124,13 +122,13 @@ const onRecommend = async () => {
 
 .recommend-search {
   position: sticky;
-  top: 0; /* 距离页面顶部0px时开始固定 */
-  z-index: 10; /* 确保浮在上层 */
-  background: rgba(255, 255, 255, 0); /* 防止滚动时内容透出来 */
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0); 
   display: flex;
   max-width: 600px;
   margin: 10 auto;
-  padding-top: 30px; /* 增加顶部留白 */
+  padding-top: 30px;
   padding-bottom: 12px;
 }
 .recommend-search input {
