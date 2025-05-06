@@ -6,6 +6,12 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import './style.css'
 
+// 恢复 token 到 axios
+const token = localStorage.getItem('accessToken')
+if (token) {
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
+
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)

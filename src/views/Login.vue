@@ -10,7 +10,7 @@
         <el-form-item prop="identifier">
           <el-input
             v-model="form.identifier"
-            placeholder="用户ID / 手机号 / 邮箱"
+            placeholder="用户ID"
             class="input-field"
           />
         </el-form-item>
@@ -41,6 +41,7 @@
 </template>
 
 <script setup>
+import { ElMessage } from 'element-plus'
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
@@ -53,9 +54,18 @@ const form = reactive({
   password: ''
 })
 
+
 async function onSubmit() {
-  await auth.login({ username: form.identifier, password: form.password })
-  router.push({ name: 'MovieList' })
+  try {
+    await auth.login({ username: form.identifier, password: form.password })
+    ElMessage.success('登录成功！')           // ← 新增：登录成功提示
+    router.push({ name: 'Home' })
+  } catch (err) {
+    const msg = err.response?.data?.detail
+              || err.response?.data?.non_field_errors?.[0]
+              || '登录失败，请检查用户名或密码'
+    ElMessage.error(msg)                 // ← 新增：登录失败提示
+  }
 }
 </script>
 

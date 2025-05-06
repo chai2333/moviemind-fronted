@@ -67,6 +67,7 @@
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/services/auth'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const form = reactive({
@@ -78,12 +79,30 @@ const form = reactive({
 })
 
 
+// async function onSubmit() {
+//   await register({
+//     username: form.username,
+//     password: form.password
+//   })
+//   router.push({ name: 'Login' })
+// }
 async function onSubmit() {
-  await register({
-    username: form.username,
-    password: form.password
-  })
-  router.push({ name: 'Login' })
+  try {
+    await register({
+      username: form.username,
+      password: form.password
+    })
+    ElMessage.success('注册成功，请登录！')       // ← 新增：注册成功提示
+    router.push({ name: 'Login' })
+  } catch (err) {
+    // 从后端返回里提取错误信息
+    const data = err.response?.data || {}
+    let msg = '注册失败'
+    if (data.username)      msg = data.username[0]
+    else if (data.password) msg = data.password[0]
+    else if (data.detail)   msg = data.detail
+    ElMessage.error(msg)    // ← 新增：注册失败提示
+  }
 }
 </script>
 
