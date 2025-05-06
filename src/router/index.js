@@ -7,6 +7,7 @@ import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import MovieDetail from '@/views/MovieDetail.vue'
 import { useAuthStore } from '@/store/auth'
+import { ElMessage } from 'element-plus'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -17,21 +18,48 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
   { path: '/user', name: 'UserProfile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
-  { path: '/admin/reports', name: 'AdminReport', component: () => import('@/views/AdminReport.vue'), meta: { requiresAuth: true, adminOnly: true } },
+  { path: '/admin/reports', name: 'AdminReport', component: () => import('@/views/AdminReport.vue') },
   { path: '/profile', name: 'Profile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
   { path: '/history/:type', name: 'HistoryDetail', component: () => import('@/views/HistoryDetail.vue'), props: true },
   { path: '/history/viewed', name: 'ViewedPage', component: () => import('@/views/ViewedPage.vue') },
   { path: '/history/favorites', name: 'FavoritesPage', component: () => import('@/views/FavoritesPage.vue') },
   { path: '/history/liked', name: 'LikedPage', component: () => import('@/views/LikedPage.vue') },
-  { path: '/history/comments', name: 'CommentsPage', component: () => import('@/views/CommentsPage.vue') }
-  
+  { path: '/history/comments', name: 'CommentsPage', component: () => import('@/views/CommentsPage.vue') },
+  {
+    path: '/admin/movies',
+    name: 'AdminMovie',
+    component: () => import('@/views/AdminMovie.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  }
 ]
 
 const router = createRouter({ history: createWebHistory(), routes })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
-  if (to.meta.requiresAuth && !auth.accessToken) return next({ name:'Login' })
+  
+  // 如果需要认证
+  if (to.meta.requiresAuth) {
+    // 如果没有token，跳转到登录页
+    if (!auth.accessToken) {
+      return next({ name: 'Login' })
+    }
+    
+    // 如果用户信息不存在，尝试获取
+    if (!auth.user) {
+      try {
+        await auth.fetchCurrentUser()
+      } catch (err) {
+        // 如果获取用户信息失败，清除token并跳转到登录页
+        auth.logout()
+        return next({ name: 'Login' })
+      }
+    }
+  }
+  
   next()
 })
 
