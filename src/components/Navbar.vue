@@ -30,7 +30,7 @@
         type="text"
         placeholder="搜索电影..."
       />
-      <i class="el-icon-search icon-search" @click="onSearch"></i>
+      <span class="search-btn" @click="onSearch">🔍</span>
     </div>
 
     <!-- 账户区 -->
@@ -139,18 +139,29 @@ function goProfile() {
 }
 
 .navbar-search {
-  flex: 1;
+  display: flex;
+  align-items: center;
   max-width: 300px;
-  position: relative;
+  width: 100%;
   margin: 0 16px;
 }
 
 .navbar-search input {
-  width: 100%;
-  padding: 8px 32px 8px 12px;
+  flex: 1;
+  padding: 8px 12px;
   border-radius: 20px;
   border: 1px solid #ddd;
   outline: none;
+}
+
+.search-btn {
+  margin-left: 8px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: #888;
 }
 
 .icon-search {
