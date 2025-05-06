@@ -104,12 +104,15 @@
     </div>
   </div>
 
+
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { getMovieDetail } from '@/services/MovieDetail.js';
+import api from '@/services/api.js';
+// import { getMovieDetail } from '@/services/MovieDetail.js';
 import { useAuthStore } from '@/store/auth'
+import { useRoute } from 'vue-router';
 
 
 
@@ -123,10 +126,21 @@ const handleImgError = (e) => {
   e.target.src = 'https://via.placeholder.com/200x300';
 };
 
+// onMounted(async () => {
+//   const res = await getMovieDetail(1);
+//   movie.value = res;
+// });
+
+const route = useRoute()
 onMounted(async () => {
-  const res = await getMovieDetail(1);
-  movie.value = res;
-});
+  try {
+    const res = await api.get(`/movie/${route.params.id}/`, {
+    })
+    movie.value = res.data
+  } catch (err) {
+    console.error('拉取电影详情失败：', err)
+  }
+})
 
 function toggle(field) {
   if (movie.value && field in movie.value) {

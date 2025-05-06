@@ -9,7 +9,12 @@
           @click="goDetail(mov.id)"
         >
           <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
-          <img :src="mov.image" class="poster" />
+          <img
+            :src="mov.image || '/default-poster.png'"
+            alt="电影海报"
+            @error="e => e.target.src = '/default-poster.png'"
+            class="poster"
+          />
           <div class="info">
             <h3>{{ mov.name }}</h3>
             <p class="director">{{ mov.director }} <span v-if="mov.year">({{ mov.year }})</span></p>
@@ -29,18 +34,24 @@
         </div>
       </div>
     </div>
+
+    <pre style="background:#f5f5f5; padding:1em; margin-top:1em;">
+{{ JSON.stringify(movies, null, 2) }}
+</pre>
+
   </template>
   
   <script setup>
 
   //后端
-  // import { ref, onMounted } from 'vue'
-  // import api from '@/services/api'
+  import { ref, onMounted } from 'vue'
+  import api from '@/services/api'
+  import { useRouter } from 'vue-router'
 
   //模拟
-  import { ref, onMounted } from 'vue'
-  import { mockMovies } from '@/services/mockMovies.js'
-  import { useRouter } from 'vue-router'
+  // import { ref, onMounted } from 'vue'
+  // import { mockMovies } from '@/services/mockMovies.js'
+  // import { useRouter } from 'vue-router'
   
   const movies = ref([])
   const router = useRouter()
@@ -56,34 +67,33 @@
     router.push({ name: 'MovieDetail', params: { id } })
   }
   
+  function parseImages(field) {
+  try {
+    const arr = JSON.parse(field)
+    if (Array.isArray(arr)) return arr
+  } catch {}
+  return field.split(',').map(u => u.trim()).filter(u => u)
+}
+
   async function fetchMovies() {
-
-    //后端
-    // const res = await api.get('/movie/movie', { params: { offset:0, limit:100 } })
-    // movies.value = (res.data.results || res.data).map(m => ({
-    //   id: m.id,
-    //   image: m.images?.[0] || m.photoUrls?.[0] || '',
-    //   name: m.name || m.title,
-    //   director: m.director || '',
-    //   summary: m.summary || '',
-    //   rating: m.rating || m.rate || 0,
-    //   year: m.pubdate ? new Date(m.pubdate).getFullYear() : null
-    // }))
-
-
-    // 这里直接使用本地 mock 数据
-      movies.value = mockMovies.map(m => ({
+    const res = await api.get('/movie/movie/', { params: { offset:0, limit:100 } })
+    movies.value = (res.data.results || res.data).map(m => {
+      const imgs = parseImages(m.large_images)
+      return {
       id: m.id,
-      image: m.images[0],
-      name: m.name,
-      director: m.director,
-      summary: m.summary,
-     rating: m.rating,
-     year: new Date(m.pubdate).getFullYear(),
-    }))
-    }
+      image: imgs[0] || m.photoUrls?.[0] || '/default-poster.png',
+      name: m.name || m.title,
+      director: m.director || '',
+      summary: m.summary || '',
+      rating: m.rating || m.rate || 0,
+      year: m.pubdate ? new Date(m.pubdate).getFullYear() : null
+  }})
+  }
+
 
   onMounted(fetchMovies)
+
+  
   </script>
   
   <style scoped>

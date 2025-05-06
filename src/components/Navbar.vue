@@ -22,11 +22,17 @@
 
     <!-- 账户区：已登录显示头像+用户名，未登录显示 登录/注册 -->
     <div class="navbar-account">
-      <template v-if="isAuth">
-        <div class="user-info" @click="goProfile" style="cursor: pointer;">
-          <img :src="auth.user.avatar || '/default-avatar.png'" class="avatar" alt="头像" />
-          <span class="username">{{ auth.user.username }}</span>
-        </div>
+    <template v-if="isAuth && auth.user">
+      <div class="user-info" @click="goProfile" style="cursor:pointer;">
+        <img
+          :src="auth.user.avatar && auth.user.avatar.length > 0
+                   ? auth.user.avatar
+                   : '/default-avatar.png'"
+          class="avatar"
+          alt="头像"
+        />
+        <span class="username">{{ auth.user.username }}</span>
+      </div>
       </template>
       <template v-else>
         <router-link to="/login" class="auth-link">登录</router-link>
