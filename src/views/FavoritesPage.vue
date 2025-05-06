@@ -34,7 +34,7 @@
   <script setup>
   import { ref, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
-  import { getUserFavorites } from '@/services/UserService'
+  import api from '@/services/api'
   
   const movies = ref([])
   const router = useRouter()
@@ -51,16 +51,22 @@
   }
   
   onMounted(async () => {
-    const res = await getUserFavorites()
-    movies.value = res?.data?.favorites?.map(m => ({
-      id: m.id,
-      image: m.images?.[0] || m.photoUrls?.[0] || '',
-      name: m.name,
-      director: m.director || '',
-      summary: m.summary || '',
-      rating: m.rating || 0,
-      year: m.pubdate ? new Date(m.pubdate).getFullYear() : null
-    })) || []
+    try {
+      const res = await api.get('/interact/collect/', {
+        params: { limit: 20, offset: 0 }
+      })
+      movies.value = res.data.results.map(m => ({
+        id: m.movie_id,
+        image: m.movie_image,
+        name: m.movie_name,
+        director: m.movie_director,
+        summary: m.movie_summary || '',
+        rating: m.movie_rating || 0,
+        year: m.movie_year
+      }))
+    } catch (err) {
+      console.error('获取收藏列表失败:', err)
+    }
   })
   </script>
   

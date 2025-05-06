@@ -47,11 +47,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getUserProfile, updateUserProfile } from '@/services/UserService'
 import { useAuthStore } from '@/store/auth'
 import HistoryPreview from './HistoryDetail.vue'
 import AdminReport from './AdminReport.vue'
-
+import api from '@/services/api'
+import { ElMessage } from 'element-plus'
 
 const activeTab = ref('history')
 const auth = useAuthStore()
@@ -75,6 +75,7 @@ function addLikeTag() {
   }
   newLikeTag.value = ''
 }
+
 function addDislikeTag() {
   if (newDislikeTag.value && !form.dislike_tags.includes(newDislikeTag.value)) {
     form.dislike_tags.push(newDislikeTag.value)
@@ -83,16 +84,63 @@ function addDislikeTag() {
 }
 
 async function fetchData() {
-  const res = await getUserProfile()
-  Object.assign(form, res || {}) 
+  try {
+    const res = await api.get('/userinfo')
+    Object.assign(form, res.data || {})
+  } catch (err) {
+    console.error('获取用户信息失败:', err)
+  }
 }
+
 async function onUpdate() {
-  await updateUserProfile(form)
+  try {
+    // 数据验证
+    if (form.age && (isNaN(form.age) || form.age < 0 || form.age > 150)) {
+      ElMessage.warning('请输入有效的年龄（0-150）')
+      return
+    }
+
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      ElMessage.warning('请输入有效的邮箱地址')
+      return
+    }
+
+    if (form.phone_number && !/^1[3-9]\d{9}$/.test(form.phone_number)) {
+      ElMessage.warning('请输入有效的手机号码')
+      return
+    }
+
+    // 构建更新数据对象，只包含有值的字段
+    const updateData = {}
+    if (form.username?.trim()) updateData.username = form.username.trim()
+    if (form.email?.trim()) updateData.email = form.email.trim()
+    if (form.gender?.trim()) updateData.gender = form.gender.trim()
+    if (form.phone_number?.trim()) updateData.phone_number = form.phone_number.trim()
+    if (form.age) updateData.age = parseInt(form.age)
+    if (form.introduce?.trim()) updateData.introduce = form.introduce.trim()
+    if (form.like_tags?.length) updateData.like_tags = form.like_tags
+    if (form.dislike_tags?.length) updateData.dislike_tags = form.dislike_tags
+
+    // 如果没有要更新的数据
+    if (Object.keys(updateData).length === 0) {
+      ElMessage.warning('没有要更新的数据')
+      return
+    }
+
+    await api.patch('/userinfo/me/', updateData)
+    ElMessage.success('更新成功')
+    // 更新成功后重新获取用户信息
+    await fetchData()
+  } catch (err) {
+    console.error('更新用户信息失败:', err)
+    ElMessage.error(err.response?.data?.message || '更新失败')
+  }
 }
 
 function switchAccount() {
   location.href = '/login'
 }
+
 function logout() {
   auth.logout()
   location.href = '/login'

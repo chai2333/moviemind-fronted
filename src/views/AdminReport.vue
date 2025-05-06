@@ -20,18 +20,45 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getReports, banUserById, ignoreReportById } from '@/services/AdminService'
+import api from '@/services/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const reports = ref([])
 
 async function fetchReports() {
   try {
-    const res = await getReports()
-    reports.value = res.data || []
+    const res = await api.get('/admin/comment')
+    reports.value = res.data.results.map(item => ({
+      id: item.comment_id,
+      reportedUser: item.user_name,
+      content: item.movie_name,
+      userId: item.user_id
+    }))
   } catch (err) {
     console.error('获取举报信息失败', err)
-    ElMessage.error('加载失败')
+    if (err.response) {
+      // 服务器返回了错误状态码
+      console.error('错误状态码:', err.response.status)
+      console.error('错误信息:', err.response.data)
+      if (err.response.status === 403) {
+        ElMessage.error('没有权限访问')
+        router.push('/')
+      } else if (err.response.status === 404) {
+        ElMessage.error('API路径不存在，请检查后端服务')
+      } else {
+        ElMessage.error(err.response.data?.message || '加载失败')
+      }
+    } else if (err.request) {
+      // 请求已发送但没有收到响应
+      console.error('未收到响应:', err.request)
+      ElMessage.error('服务器无响应，请检查后端服务是否运行')
+    } else {
+      // 请求配置出错
+      console.error('请求错误:', err.message)
+      ElMessage.error('请求配置错误')
+    }
   }
 }
 
@@ -41,9 +68,14 @@ function banUser(row) {
     cancelButtonText: '取消',
     type: 'warning',
   }).then(async () => {
-    await banUserById(row.id)
-    ElMessage.success('用户已封禁')
-    reports.value = reports.value.filter(r => r.id !== row.id)
+    try {
+      await api.delete(`/admin/user/${row.userId}`)
+      ElMessage.success('用户已封禁')
+      reports.value = reports.value.filter(r => r.id !== row.id)
+    } catch (err) {
+      console.error('封禁用户失败:', err)
+      ElMessage.error('操作失败')
+    }
   }).catch(() => {})
 }
 
@@ -53,9 +85,14 @@ function ignoreReport(row) {
     cancelButtonText: '取消',
     type: 'info',
   }).then(async () => {
-    await ignoreReportById(row.id)
-    ElMessage.success('已忽略举报')
-    reports.value = reports.value.filter(r => r.id !== row.id)
+    try {
+      await api.get(`/admin/comment/${row.id}/visible`)
+      ElMessage.success('已忽略举报')
+      reports.value = reports.value.filter(r => r.id !== row.id)
+    } catch (err) {
+      console.error('忽略举报失败:', err)
+      ElMessage.error('操作失败')
+    }
   }).catch(() => {})
 }
 
