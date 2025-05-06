@@ -2,7 +2,10 @@
   <div class="auth-page">
     <div class="auth-overlay"></div>
     <div class="auth-card">
-      <img src="@/assets/logo.png" class="logo" alt="观影济" />
+      <div class="auth-header">
+        <img src="@/assets/logo.png" class="navbar-logo" alt="logo" />
+        <span class="navbar-title">观影济</span>
+      </div>
       <el-form @submit.prevent="onSubmit" :model="form" label-width="0">
         <el-form-item prop="username">
           <el-input
@@ -18,9 +21,9 @@
             placeholder="密码"
             class="input-field"
           />
-          <small class="hint">* 要求密码中包含大小写字母和数字，至少8位</small>
+          <!-- <small class="hint">* 要求密码中包含大小写字母和数字，至少8位</small> -->
         </el-form-item>
-        <el-form-item prop="confirm">
+        <!-- <el-form-item prop="confirm">
           <el-input
             v-model="form.confirm"
             type="password"
@@ -45,12 +48,12 @@
           <el-button type="text" class="send-btn" @click="sendCaptcha">
             发送验证码
           </el-button>
-        </el-form-item>
+        </el-form-item>-->
         <el-form-item>
           <el-button type="primary" class="auth-btn" @click="onSubmit">
-            确认
+            注册
           </el-button>
-        </el-form-item>
+        </el-form-item> 
         <div class="auth-footer">
           <span>已有账号？</span>
           <router-link to="/login">登录一下</router-link>
@@ -74,15 +77,8 @@ const form = reactive({
   captcha: ''
 })
 
-async function sendCaptcha() {
-  // TODO: 调用短信接口
-  console.log('发送验证码到', form.phone)
-}
 
 async function onSubmit() {
-  if (form.password !== form.confirm) {
-    return alert('两次密码不一致')
-  }
   await register({
     username: form.username,
     password: form.password

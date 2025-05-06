@@ -2,7 +2,10 @@
   <div class="auth-page">
     <div class="auth-overlay"></div>
     <div class="auth-card">
-      <img src="@/assets/logo.png" class="logo" alt="观影济" />
+      <div class="auth-header">
+        <img src="@/assets/logo.png" class="navbar-logo" alt="logo" />
+        <span class="navbar-title">观影济</span>
+      </div>
       <el-form @submit.prevent="onSubmit" :model="form" label-width="0">
         <el-form-item prop="identifier">
           <el-input
@@ -19,10 +22,10 @@
             class="input-field"
           />
         </el-form-item>
-        <div class="auth-links">
+        <!-- <div class="auth-links">
           <span class="link">短信登录</span>
           <span class="link">忘记密码</span>
-        </div>
+        </div> -->
         <el-form-item>
           <el-button type="primary" class="auth-btn" @click="onSubmit">
             登录
