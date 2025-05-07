@@ -16,7 +16,7 @@
         :src="mov.image"
         referrerpolicy="no-referrer"
         alt="电影海报"
-        @error="e => e.target.src = '/default-poster.png'"
+        @error="e => e.target.src = no_poster"
       />
       <div class="details">
         <h3>{{ mov.name }}</h3>
@@ -29,9 +29,9 @@
     </div>
 
     <!-- 调试用：打印当前 movies 数组 -->
-    <pre style="background:#f5f5f5; padding:1em; margin:2em 0;">
+    <!-- <pre style="background:#f5f5f5; padding:1em; margin:2em 0;">
 {{ JSON.stringify(movies, null, 2) }}
-    </pre>
+    </pre> -->
   </div>
 </template>
 
@@ -39,6 +39,8 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
+import no_poster from '@/assets/no_poster.png'
+import { no } from 'element-plus/es/locales.mjs'
 
 // 将 large_images/small_images 拆成数组
 function parseImages(field) {

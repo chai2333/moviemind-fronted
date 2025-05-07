@@ -10,10 +10,10 @@
         >
           <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
           <img
-            :src="mov.image || '/default-poster.png'"
+            :src="mov.image || no_poster"
             referrerpolicy="no-referrer"
             alt="电影海报"
-            @error="e => e.target.src = '/default-poster.png'"
+            @error="e => e.target.src = no_poster"
             class="poster"
           />
           <div class="info">
@@ -36,9 +36,10 @@
       </div>
     </div>
 
-    <pre style="background:#f5f5f5; padding:1em; margin-top:1em;">
+    <!--  调试用：打印当前 movies 数组 -->
+    <!-- <pre style="background:#f5f5f5; padding:1em; margin-top:1em;">
 {{ JSON.stringify(movies, null, 2) }}
-</pre>
+</pre> -->
 
   </template>
   
@@ -48,6 +49,7 @@
   import { ref, onMounted } from 'vue'
   import api from '@/services/api'
   import { useRouter } from 'vue-router'
+  import no_poster from '@/assets/no_poster.png'
 
   //模拟
   // import { ref, onMounted } from 'vue'
