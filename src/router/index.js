@@ -18,7 +18,7 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
   { path: '/user', name: 'UserProfile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
-  { path: '/admin/reports', name: 'AdminReport', component: () => import('@/views/AdminReport.vue') },
+  { path: '/admin/reports', name: 'AdminReport', component: () => import('@/views/AdminReport.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/profile', name: 'Profile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
   { path: '/history/:type', name: 'HistoryDetail', component: () => import('@/views/HistoryDetail.vue'), props: true },
   { path: '/history/viewed', name: 'ViewedPage', component: () => import('@/views/ViewedPage.vue') },
@@ -27,8 +27,8 @@ const routes = [
   { path: '/history/comments', name: 'CommentsPage', component: () => import('@/views/CommentsPage.vue') },
   {
     path: '/admin/movies',
-    name: 'AdminMovie',
-    component: () => import('@/views/AdminMovie.vue'),
+    name: 'AdminMovies',
+    component: () => import('@/views/AdminMovies.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: true
