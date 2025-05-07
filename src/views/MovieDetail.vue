@@ -15,18 +15,19 @@
 
     <div class="poster-and-tags">
       <img
-        :src="movie?.images"
+        :src="movie?.images || '/default-movie.png'"
         alt="电影海报"
         @error="handleImgError"
         class="poster"
+        referrerpolicy="no-referrer"
       />
       <div class="tags">
         <span v-for="tag in (movie?.tags || '').split(',')" :key="tag" class="tag">{{ tag }}</span>
-        <el-popover trigger="hover" placement="right">
+        <el-popover trigger="hover" placement="right" :width="300">
           <template #reference>
             <span class="more-info">更多信息</span>
           </template>
-          <div>
+          <div class="more-info-content">
             <p>导演：{{ movie?.directors || '未知' }}</p>
             <p>主演：{{ movie?.actor || '暂无信息' }}</p>
             <p>类型：{{ movie?.genres || '未知' }}</p>
@@ -79,7 +80,6 @@
     <div class="comment-section">
       <h3>评论区</h3>
       <div v-for="comment in movie?.comments || []" :key="comment.comment_id" class="comment">
-        <img :src="comment.user_avatar || '/default-avatar.png'" alt="头像" class="avatar" />
         <div class="comment-body">
           <strong>{{ comment.username }}</strong> 
           <span v-if="comment.rating">- 打分：{{ comment.rating }}</span>
@@ -174,7 +174,7 @@ const activeReplyId = ref(null)
 const replyContent = ref('')
 
 const handleImgError = (e) => {
-  e.target.src = 'https://via.placeholder.com/200x300'
+  e.target.src = '/default-movie.png'
 }
 
 onMounted(async () => {
@@ -184,10 +184,29 @@ onMounted(async () => {
       api.get('/movie/movieaction', { params: { movie_id: route.params.id } })
     ])
     
+    console.log('电影详情数据:', movieRes.data)
+    console.log('电影操作数据:', actionRes.data)
+    
+    // 处理电影详情数据
+    const movieData = movieRes.data
     movie.value = {
-      ...movieRes.data,
-      ...actionRes.data,
-      movie_id: route.params.id
+      movie_id: route.params.id,
+      title: movieData.name,
+      images: movieData.large_images || movieData.small_images,
+      tags: movieData.tags?.replace(/[\[\]']/g, '').split(',').join(','),
+      directors: movieData.director,
+      actor: movieData.actors?.replace(/[\[\]']/g, ''),
+      genres: movieData.tags?.replace(/[\[\]']/g, ''),
+      year: movieData.pubdate,
+      countries: movieData.countries?.replace(/[\[\]']/g, ''),
+      languages: movieData.language?.replace(/[\[\]']/g, ''),
+      durations: movieData.durations?.replace(/[\[\]']/g, ''),
+      summary: movieData.summary,
+      rating: movieData.rating,
+      browse: movieData.like_count,
+      aiComment: movieData.ai_comment,
+      // 合并用户操作数据
+      ...actionRes.data
     }
 
     // 获取评论列表
@@ -195,17 +214,19 @@ onMounted(async () => {
       params: { movie_id: route.params.id }
     })
     
+    console.log('评论数据:', commentRes.data)
+    
     // 处理评论数据
-    movie.value.comments = commentRes.data.results.map(comment => ({
+    movie.value.comments = (commentRes.data.results || []).map(comment => ({
       comment_id: comment.comment_id,
       content: comment.comment_content,
       username: auth.user?.username || '未知用户',
       user_avatar: auth.user?.avatar || '/default-avatar.png',
-      rating: 0, // 后端暂时没有返回评分
-      create_time: new Date().toLocaleString(),
-      likes: 0,
-      dislikes: 0,
-      replies: []
+      rating: comment.rating || 0,
+      create_time: new Date(comment.comment_updated_time).toLocaleString(),
+      likes: comment.likes || 0,
+      dislikes: comment.dislikes || 0,
+      replies: comment.replies || []
     }))
   } catch (err) {
     console.error('获取电影详情失败:', err)
@@ -459,14 +480,35 @@ function handleCommentDeleted(commentId) {
   display: inline-block;
   background-color: #5c6bc0;
   color: #fff;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  margin: 4px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  margin: 8px;
+  transition: all 0.3s ease;
+}
+.tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .more-info {
-  color: blue;
+  display: inline-block;
+  color: #5c6bc0;
   cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  margin: 8px;
+  background-color: #f5f5f5;
+  transition: all 0.3s ease;
+}
+.more-info:hover {
+  background-color: #e0e0e0;
+}
+.more-info-content {
+  line-height: 1.8;
+}
+.more-info-content p {
+  margin: 8px 0;
 }
 .rating {
   font-size: 18px;
@@ -507,8 +549,10 @@ function handleCommentDeleted(commentId) {
   color: #FF9800;
 }
 .comment {
-  display: flex;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 8px;
 }
 .avatar {
   width: 50px;
@@ -519,10 +563,15 @@ function handleCommentDeleted(commentId) {
   background-color: #f0f0f0;
 }
 .comment-body {
-  background: #fafafa;
-  padding: 10px;
-  border-radius: 5px;
   flex: 1;
+}
+.comment-body strong {
+  font-size: 16px;
+  color: #333;
+}
+.comment-body p {
+  margin: 8px 0;
+  line-height: 1.6;
 }
 .meta {
   font-size: 12px;

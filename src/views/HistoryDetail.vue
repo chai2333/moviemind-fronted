@@ -35,30 +35,43 @@ onMounted(async () => {
       api.get('/interact/comment', { params: { limit: 5, offset: 0 } })
     ])
 
+    console.log('浏览历史数据:', historyRes.data)
+    console.log('收藏数据:', favoritesRes.data)
+    console.log('点赞数据:', likedRes.data)
+    console.log('评论数据:', commentedRes.data)
+
     history.value = {
-      viewed: historyRes.data.results.map(m => ({
+      viewed: (historyRes.data.results || []).map(m => ({
         id: m.movie_id,
         name: m.movie_name,
         director: m.movie_director,
-        image: m.movie_image
+        image: m.movie_image || m.large_images || m.small_images,
+        rating: m.movie_rating || 0,
+        year: m.movie_year
       })),
-      favorites: favoritesRes.data.results.map(m => ({
+      favorites: (favoritesRes.data.results || []).map(m => ({
         id: m.movie_id,
         name: m.movie_name,
         director: m.movie_director,
-        image: m.movie_image
+        image: m.movie_image || m.large_images || m.small_images,
+        rating: m.movie_rating || 0,
+        year: m.movie_year
       })),
-      liked: likedRes.data.results.map(m => ({
+      liked: (likedRes.data.results || []).map(m => ({
         id: m.movie_id,
         name: m.movie_name,
         director: m.movie_director,
-        image: m.movie_image
+        image: m.movie_image || m.large_images || m.small_images,
+        rating: m.movie_rating || 0,
+        year: m.movie_year
       })),
-      commented: commentedRes.data.results.map(m => ({
+      commented: (commentedRes.data.results || []).map(m => ({
         id: m.movie_id,
         name: m.movie_name,
         director: m.movie_director,
-        image: m.movie_image
+        image: m.movie_image || m.large_images || m.small_images,
+        rating: m.movie_rating || 0,
+        year: m.movie_year
       }))
     }
   } catch (err) {

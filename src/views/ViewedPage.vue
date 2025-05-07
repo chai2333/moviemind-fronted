@@ -9,7 +9,12 @@
           @click="goDetail(mov.id)"
         >
           <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
-          <img :src="mov.image" class="poster" />
+          <img 
+            :src="mov.image || '/default-movie.png'" 
+            class="poster" 
+            @error="handleImgError"
+            referrerpolicy="no-referrer"
+          />
           <div class="info">
             <h3>{{ mov.name }}</h3>
             <p class="director">{{ mov.director }} <span v-if="mov.year">({{ mov.year }})</span></p>
@@ -48,6 +53,10 @@
   
   function goDetail(id) {
     router.push({ name: 'MovieDetail', params: { id } })
+  }
+  
+  function handleImgError(e) {
+    e.target.src = '/default-movie.png'
   }
   
   onMounted(async () => {
