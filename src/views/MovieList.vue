@@ -11,6 +11,7 @@
           <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
           <img
             :src="mov.image || '/default-poster.png'"
+            referrerpolicy="no-referrer"
             alt="电影海报"
             @error="e => e.target.src = '/default-poster.png'"
             class="poster"

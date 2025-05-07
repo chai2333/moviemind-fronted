@@ -14,6 +14,7 @@
     >
       <img
         :src="mov.image"
+        referrerpolicy="no-referrer"
         alt="电影海报"
         @error="e => e.target.src = '/default-poster.png'"
       />
