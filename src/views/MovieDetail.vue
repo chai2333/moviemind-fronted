@@ -63,75 +63,33 @@
         :class="{ active: movie?.is_collect }"
       >{{ movie?.is_collect ? '⭐ 已收藏' : '☆ 收藏' }}</button>
 
-      <div v-if="movie?.watched" class="user-rating">
-        评分：
-        <span
-          v-for="i in 5"
-          :key="i"
-          @click="setUserScore(i * 2)"
-          class="user-star"
-          :class="{ active: i * 2 <= movie?.is_rate }"
-        >
-          {{ i * 2 <= movie?.is_rate ? '★' : '☆' }}
-        </span>
-      </div>
     </div>
 
     <div class="comment-section">
       <h3>评论区</h3>
-      <div v-for="comment in movie?.comments || []" :key="comment.comment_id" class="comment">
-        <div class="comment-body">
-          <strong>{{ comment.username }}</strong> 
-          <span v-if="comment.rating">- 打分：{{ comment.rating }}</span>
-          <p>{{ comment.content }}</p>
-          <div class="meta">
-            {{ comment.create_time }}　
-            <button class="action-btn" @click="toggleCommentLike(comment)">
-              👍 {{ comment.likes || 0 }}
-            </button>
-            <button class="action-btn" @click="toggleCommentDislike(comment)">
-              👎 {{ comment.dislikes || 0 }}
-            </button>
-            <button class="action-btn" @click="showReplyInput(comment)">回复</button>
-            <AdminMovieActions 
-              v-if="isAdmin"
-              :movie-id="movie?.movie_id"
-              :comment-id="comment.comment_id"
-              @comment-deleted="handleCommentDeleted"
-            />
-          </div>
-        </div>
-
-        <div v-if="comment.replies?.length" class="replies">
-          <div
-            v-for="reply in comment.replies"
-            :key="reply.reply_id"
-            class="reply"
-          >
-            <img :src="reply.user_avatar || '/default-avatar.png'" class="avatar" />
-            <div class="comment-body">
-              <strong>{{ reply.username }}</strong>
-              <p>{{ reply.content }}</p>
-              <div class="meta">
-                {{ reply.create_time }}　
-                <button class="action-btn" @click="toggleReplyLike(reply)">
-                  👍 {{ reply.likes || 0 }}
-                </button>
-                <button class="action-btn" @click="toggleReplyDislike(reply)">
-                  👎 {{ reply.dislikes || 0 }}
-                </button>
-              </div>
+      <div v-if="movie?.comments?.length > 0">
+        <div v-for="comment in movie.comments" :key="comment.comment_id" class="comment">
+          <div class="comment-body">
+            <strong>{{ comment.username }}</strong> 
+            <p>{{ comment.comment_content }}</p>
+            <div class="meta" v-if="comment.comment_updated_time">
+              {{ new Date(comment.comment_updated_time).toLocaleString() }}
             </div>
           </div>
         </div>
 
-        <div v-if="activeReplyId === comment.comment_id" class="reply-input">
-          <textarea v-model="replyContent" placeholder="写下你的回复..."></textarea>
-          <div class="reply-actions">
-            <button @click="submitReply(comment)">发布回复</button>
-            <button @click="cancelReply">取消</button>
-          </div>
+        <div class="pagination" v-if="totalComments > pageSize">
+          <el-pagination
+            v-model:current-page="currentPage"
+            :page-size="pageSize"
+            :total="totalComments"
+            @current-change="handlePageChange"
+            layout="prev, pager, next"
+          />
         </div>
+      </div>
+      <div v-else class="no-comments">
+        暂无评论
       </div>
 
       <div v-if="movie?.watched && !isAdmin" class="add-comment">
@@ -167,14 +125,78 @@ const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const route = useRoute()
 
-const movie = ref({})
+const movie = ref(null)
 const newComment = ref('')
 const newCommentRating = ref(0)
 const activeReplyId = ref(null)
 const replyContent = ref('')
+const currentPage = ref(1)
+const pageSize = ref(5)
+const totalComments = ref(0)
 
 const handleImgError = (e) => {
   e.target.src = '/default-movie.png'
+}
+async function fetchComments(forceReload = false) {
+  try {
+    // 获取所有评论
+    const commentRes = await api.get('/interact/comment', { 
+      params: {
+        ordering: '-comment_updated_time',
+        limit: 1000,  // 使用一个较大的值确保获取所有评论
+        _: forceReload ? Date.now() : undefined
+      }
+    })
+    
+    // 获取当前电影ID
+    const currentMovieId = parseInt(route.params.id)
+    
+    console.log('获取到的所有评论:', commentRes.data.results)
+    console.log('当前电影ID:', currentMovieId)
+    
+    // 筛选当前电影的评论
+    const filteredComments = commentRes.data.results.filter(
+      comment => comment.movie_id === currentMovieId
+    )
+    
+    console.log('筛选后的评论:', filteredComments)
+    
+    // 计算分页
+    const start = (currentPage.value - 1) * pageSize.value
+    const end = start + pageSize.value
+    
+    // 更新评论数据
+    movie.value.comments = filteredComments
+      .slice(start, end)
+      .map(comment => ({
+        comment_id: comment.comment_id,
+        comment_content: comment.comment_content,
+        movie_id: comment.movie_id,
+        username: comment.username || '未知用户',
+        comment_updated_time: comment.comment_updated_time,
+        rating: comment.rating || 0
+      }))
+    
+    // 更新总数（使用筛选后的评论数量）
+    totalComments.value = filteredComments.length
+
+    console.log('分页参数:', {
+      currentPage: currentPage.value,
+      pageSize: pageSize.value,
+      start,
+      end
+    })
+    console.log('最终显示的评论:', movie.value.comments)
+    console.log('评论总数:', totalComments.value)
+  } catch (err) {
+    console.error('获取评论失败:', err)
+    ElMessage.error('加载评论失败')
+  }
+}
+
+function handlePageChange(page) {
+  currentPage.value = page
+  fetchComments() // 重新分页
 }
 
 onMounted(async () => {
@@ -184,13 +206,12 @@ onMounted(async () => {
       api.get('/movie/movieaction', { params: { movie_id: route.params.id } })
     ])
     
-    console.log('电影详情数据:', movieRes.data)
-    console.log('电影操作数据:', actionRes.data)
-    
     // 处理电影详情数据
     const movieData = movieRes.data
+    const currentMovieId = parseInt(route.params.id)
+    
     movie.value = {
-      movie_id: route.params.id,
+      movie_id: currentMovieId,
       title: movieData.name,
       images: movieData.large_images || movieData.small_images,
       tags: movieData.tags?.replace(/[\[\]']/g, '').split(',').join(','),
@@ -206,28 +227,12 @@ onMounted(async () => {
       browse: movieData.like_count,
       aiComment: movieData.ai_comment,
       // 合并用户操作数据
-      ...actionRes.data
+      ...actionRes.data,
+      comments: []
     }
-
-    // 获取评论列表
-    const commentRes = await api.get('/interact/comment', {
-      params: { movie_id: route.params.id }
-    })
     
-    console.log('评论数据:', commentRes.data)
-    
-    // 处理评论数据
-    movie.value.comments = (commentRes.data.results || []).map(comment => ({
-      comment_id: comment.comment_id,
-      content: comment.comment_content,
-      username: auth.user?.username || '未知用户',
-      user_avatar: auth.user?.avatar || '/default-avatar.png',
-      rating: comment.rating || 0,
-      create_time: new Date(comment.comment_updated_time).toLocaleString(),
-      likes: comment.likes || 0,
-      dislikes: comment.dislikes || 0,
-      replies: comment.replies || []
-    }))
+    // 获取第一页评论
+    await fetchComments()
   } catch (err) {
     console.error('获取电影详情失败:', err)
     ElMessage.error('加载失败')
@@ -297,36 +302,34 @@ async function submitComment() {
   }
   
   try {
-    const res = await api.post('/interact/comment/', {
-      movie_id: movie.value.movie_id,
+    // 先提交评分
+    if (newCommentRating.value > 0) {
+      await api.post('/interact/rate/', {
+        movie_id: parseInt(route.params.id),
+        rate: newCommentRating.value
+      })
+    }
+    
+    // 再提交评论
+    const commentRes = await api.post('/interact/comment/', {
+      movie_id: parseInt(route.params.id),
       content: newComment.value,
       rating: newCommentRating.value
     })
     
-    // 重新获取评论列表
-    const commentRes = await api.get('/interact/comment', {
-      params: { movie_id: movie.value.movie_id }
-    })
+    console.log('评论提交成功，返回数据:', commentRes.data)
     
-    // 处理评论数据
-    movie.value.comments = commentRes.data.results.map(comment => ({
-      comment_id: comment.comment_id,
-      content: comment.comment_content,
-      username: auth.user?.username || '未知用户',
-      user_avatar: auth.user?.avatar || '/default-avatar.png',
-      rating: newCommentRating.value,
-      create_time: new Date().toLocaleString(),
-      likes: 0,
-      dislikes: 0,
-      replies: []
-    }))
-    
+    // 清空表单
     newComment.value = ''
     newCommentRating.value = 0
     ElMessage.success('评论成功')
+    
+    // 重新获取第一页评论
+    currentPage.value = 1
+    await fetchComments(true)  // 强制刷新评论列表
   } catch (err) {
-    console.error('评论失败:', err)
-    ElMessage.error('评论失败')
+    console.error('提交失败:', err.response?.data || err)
+    ElMessage.error(`提交失败: ${err.response?.data?.detail || '未知错误'}`)
   }
 }
 
@@ -657,5 +660,15 @@ function handleCommentDeleted(commentId) {
 }
 .comment-rating {
   margin-bottom: 10px;
+}
+.pagination {
+  margin: 20px 0;
+  text-align: center;
+}
+.no-comments {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-size: 14px;
 }
 </style>
