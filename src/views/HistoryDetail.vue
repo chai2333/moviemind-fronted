@@ -1,62 +1,82 @@
 <template>
   <div class="history-preview">
-    <h3>浏览历史</h3>
-    <div class="movie-list">
-      <div v-for="movie in history.viewed" :key="movie.id" class="movie-card">
-        <router-link :to="'/movie/' + movie.id">
-          <img 
-            :src="movie.image || '/default-movie.png'" 
-            :alt="movie.name"
-            @error="handleImgError"
-            referrerpolicy="no-referrer"
-          />
-          <div class="movie-title">{{ movie.name }}</div>
-        </router-link>
+    <div class="section">
+      <div class="section-header">
+        <h3>浏览历史</h3>
+        <router-link to="/viewed" class="more-link">更多</router-link>
+      </div>
+      <div class="movie-list">
+        <div v-for="movie in history.viewed" :key="movie.id" class="movie-card">
+          <router-link :to="'/movie/' + movie.id">
+            <img 
+              :src="movie.image || '/default-movie.png'" 
+              :alt="movie.name"
+              @error="handleImgError"
+              referrerpolicy="no-referrer"
+            />
+            <div class="movie-title">{{ movie.name }}</div>
+          </router-link>
+        </div>
       </div>
     </div>
 
-    <h3>收藏电影</h3>
-    <div class="movie-list">
-      <div v-for="movie in history.favorites" :key="movie.id" class="movie-card">
-        <router-link :to="'/movie/' + movie.id">
-          <img 
-            :src="movie.image || '/default-movie.png'" 
-            :alt="movie.name"
-            @error="handleImgError"
-            referrerpolicy="no-referrer"
-          />
-          <div class="movie-title">{{ movie.name }}</div>
-        </router-link>
+    <div class="section">
+      <div class="section-header">
+        <h3>收藏电影</h3>
+        <router-link to="/favorites" class="more-link">更多</router-link>
+      </div>
+      <div class="movie-list">
+        <div v-for="movie in history.favorites" :key="movie.id" class="movie-card">
+          <router-link :to="'/movie/' + movie.id">
+            <img 
+              :src="movie.image || '/default-movie.png'" 
+              :alt="movie.name"
+              @error="handleImgError"
+              referrerpolicy="no-referrer"
+            />
+            <div class="movie-title">{{ movie.name }}</div>
+          </router-link>
+        </div>
       </div>
     </div>
 
-    <h3>点赞电影</h3>
-    <div class="movie-list">
-      <div v-for="movie in history.liked" :key="movie.id" class="movie-card">
-        <router-link :to="'/movie/' + movie.id">
-          <img 
-            :src="movie.image || '/default-movie.png'" 
-            :alt="movie.name"
-            @error="handleImgError"
-            referrerpolicy="no-referrer"
-          />
-          <div class="movie-title">{{ movie.name }}</div>
-        </router-link>
+    <div class="section">
+      <div class="section-header">
+        <h3>点赞电影</h3>
+        <router-link to="/liked" class="more-link">更多</router-link>
+      </div>
+      <div class="movie-list">
+        <div v-for="movie in history.liked" :key="movie.id" class="movie-card">
+          <router-link :to="'/movie/' + movie.id">
+            <img 
+              :src="movie.image || '/default-movie.png'" 
+              :alt="movie.name"
+              @error="handleImgError"
+              referrerpolicy="no-referrer"
+            />
+            <div class="movie-title">{{ movie.name }}</div>
+          </router-link>
+        </div>
       </div>
     </div>
 
-    <h3>历史评论</h3>
-    <div class="movie-list">
-      <div v-for="movie in history.commented" :key="movie.id" class="movie-card">
-        <router-link :to="'/movie/' + movie.id">
-          <img 
-            :src="movie.image || '/default-movie.png'" 
-            :alt="movie.name"
-            @error="handleImgError"
-            referrerpolicy="no-referrer"
-          />
-          <div class="movie-title">{{ movie.name }}</div>
-        </router-link>
+    <div class="section">
+      <div class="section-header">
+        <h3>历史评论</h3>
+        <router-link to="/commented" class="more-link">更多</router-link>
+      </div>
+      <div class="movie-list">
+        <div v-for="movie in history.commented" :key="movie.id" class="movie-card">
+          <router-link :to="'/movie/' + movie.id">
+            <img 
+              :src="movie.image || '/default-movie.png'" 
+              :alt="movie.name"
+              @error="handleImgError"
+              referrerpolicy="no-referrer"
+            />
+            <div class="movie-title">{{ movie.name }}</div>
+          </router-link>
+        </div>
       </div>
     </div>
   </div>
@@ -149,17 +169,51 @@ onMounted(async () => {
 <style scoped>
 .history-preview {
   padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+}
+
+.more-link {
+  color: #5c6bc0;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 12px;
+  border: 1px solid #5c6bc0;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.more-link:hover {
+  background-color: #5c6bc0;
+  color: white;
 }
 
 .movie-list {
   display: flex;
-  flex-wrap: wrap;
   gap: 20px;
-  margin-bottom: 30px;
+  justify-content: flex-start;
 }
 
 .movie-card {
   width: 160px;
+  flex-shrink: 0;
 }
 
 .movie-card img {
@@ -182,11 +236,5 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-h3 {
-  font-size: 20px;
-  color: #333;
-  margin: 20px 0;
 }
 </style>

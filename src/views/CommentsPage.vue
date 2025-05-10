@@ -1,104 +1,280 @@
 <template>
-    <div class="movie-list">
-      <h2>我评论过的影片</h2>
-      <div class="list-container">
-        <div
-          v-for="(mov, idx) in movies"
-          :key="mov.id"
-          class="movie-item"
-          @click="goDetail(mov.id)"
-        >
-          <div class="rank" :class="{ first: idx===0 }">{{ idx+1 }}</div>
-          <img 
-            :src="mov.image || '/default-movie.png'" 
-            class="poster" 
-            @error="handleImgError"
-            referrerpolicy="no-referrer"
-          />
-          <div class="info">
-            <h3>{{ mov.name }}</h3>
-            <p class="director">{{ mov.director }} <span v-if="mov.year">({{ mov.year }})</span></p>
-            <p class="summary">{{ mov.summary }}</p>
-          </div>
-          <div class="rating">
-            <div class="score">{{ mov.rating.toFixed(1).replace('.',',') }}/10</div>
-            <div class="stars">
-              <i
-                v-for="n in 5"
-                :key="n"
-                class="el-icon-star-on"
-                :style="starStyle(n, mov.rating)"
-              />
-            </div>
-          </div>
-        </div>
+  <div class="movie-list">
+    <div class="header">
+      <h2>历史评论</h2>
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="搜索电影..."
+          @input="handleSearch"
+        />
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  import api from '@/services/api'
-  
-  const movies = ref([])
-  const router = useRouter()
-  
-  function starStyle(n, rating) {
-    const half = Math.ceil(rating / 2)
-    if (n <= Math.floor(rating / 2)) return { color: '#FF9800' }
-    if (n === half) return { color: '#FF980080' }
-    return { color: '#ccc' }
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>电影海报</th>
+            <th>电影名称</th>
+            <th>导演</th>
+            <th>年份</th>
+            <th>评分</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="movie in filteredMovies" :key="movie.id">
+            <td>
+              <div class="image-container">
+                <img 
+                  :src="movie.image || '/default-movie.png'" 
+                  :alt="movie.name"
+                  @error="handleImgError"
+                  referrerpolicy="no-referrer"
+                />
+              </div>
+            </td>
+            <td>{{ movie.name }}</td>
+            <td>{{ movie.director }}</td>
+            <td>{{ movie.year }}</td>
+            <td>{{ movie.rating }}</td>
+            <td>
+              <router-link :to="'/movie/' + movie.id" class="action-btn view">
+                查看详情
+              </router-link>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button 
+        :disabled="currentPage === 1" 
+        @click="changePage(currentPage - 1)"
+      >
+        上一页
+      </button>
+      <span>第 {{ currentPage }} 页</span>
+      <button 
+        :disabled="!hasNextPage" 
+        @click="changePage(currentPage + 1)"
+      >
+        下一页
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/services/api'
+
+const movies = ref([])
+const searchQuery = ref('')
+const currentPage = ref(1)
+const hasNextPage = ref(false)
+const pageSize = 10
+const router = useRouter()
+
+const filteredMovies = computed(() => {
+  if (!searchQuery.value) return movies.value
+  const query = searchQuery.value.toLowerCase()
+  return movies.value.filter(movie => 
+    movie.name.toLowerCase().includes(query) ||
+    movie.director.toLowerCase().includes(query)
+  )
+})
+
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchMovies()
+}
+
+const changePage = (page) => {
+  currentPage.value = page
+  fetchMovies()
+}
+
+const fetchMovies = async () => {
+  try {
+    // 先获取所有评论，不进行分页
+    const res = await api.get('/interact/comment', { 
+      params: { 
+        limit: 1000,  // 使用较大的值确保获取所有评论
+        offset: 0,
+        ordering: '-comment_updated_time'
+      }
+    })
+    
+    // 去重处理，保留最新的评论
+    const uniqueMovies = new Map()
+    res.data.results.forEach(comment => {
+      if (!uniqueMovies.has(comment.movie_id)) {
+        uniqueMovies.set(comment.movie_id, {
+          id: comment.movie_id,
+          name: comment.movie_name,
+          director: comment.movie_director,
+          image: comment.movie_image || comment.large_images || comment.small_images,
+          rating: comment.movie_rating || 0,
+          year: comment.movie_year,
+          comment_time: comment.comment_updated_time
+        })
+      }
+    })
+    
+    // 转换为数组并按评论时间排序
+    const allMovies = Array.from(uniqueMovies.values())
+      .sort((a, b) => new Date(b.comment_time) - new Date(a.comment_time))
+    
+    // 手动分页
+    const start = (currentPage.value - 1) * pageSize
+    const end = start + pageSize
+    movies.value = allMovies.slice(start, end)
+    
+    // 更新是否有下一页
+    hasNextPage.value = end < allMovies.length
+
+    console.log('所有评论电影:', allMovies)
+    console.log('当前页电影:', movies.value)
+  } catch (err) {
+    console.error('获取评论列表失败:', err)
   }
-  
-  function goDetail(id) {
-    router.push({ name: 'MovieDetail', params: { id } })
-  }
-  
-  function handleImgError(e) {
-    e.target.src = '/default-movie.png'
-  }
-  
-  onMounted(async () => {
-    try {
-      const res = await api.get('/interact/comment', {
-        params: { limit: 20, offset: 0 }
-      })
-      movies.value = res.data.results.map(m => ({
-        id: m.movie_id,
-        image: m.movie_image,
-        name: m.movie_name,
-        director: m.movie_director,
-        summary: m.movie_summary || '',
-        rating: m.movie_rating || 0,
-        year: m.movie_year
-      }))
-    } catch (err) {
-      console.error('获取评论列表失败:', err)
-    }
-  })
-  </script>
-  
-  <style scoped>
-  .movie-list { padding: 24px; }
-  .movie-list h2 { text-align:center; font-size:32px; margin-bottom:24px; }
-  .list-container { max-height:calc(100vh - 200px); overflow-y:auto; }
-  .movie-item { display:flex; align-items:flex-start; margin-bottom:24px; }
-  .rank { width:60px; font-size:48px; text-align:center; color:#000; }
-  .rank.first { color:#FF9800; }
-  .poster { width:120px; height:160px; object-fit:cover; border-radius:8px; margin:0 16px; }
-  .info { flex:1; }
-  .info h3 { margin:0; font-size:24px; }
-  .info .director { margin:4px 0; color:#555; font-size:14px; }
-  .info .summary {
-    margin-top:8px; display:-webkit-box;
-    -webkit-line-clamp:2; -webkit-box-orient:vertical;
-    overflow:hidden; text-overflow:ellipsis;
-  }
-  .rating { width:140px; text-align:right; margin-left:16px; }
-  .score { font-size:32px; }
-  .stars { display:flex; justify-content:flex-end; }
-  .stars i { font-size:20px; margin-left:4px; }
-  </style>
+}
+
+const handleImgError = (e) => {
+  e.target.src = '/default-movie.png'
+}
+
+onMounted(fetchMovies)
+</script>
+
+<style scoped>
+.movie-list {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.search-box input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+td img {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.action-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: white;
+  font-size: 14px;
+}
+
+.view {
+  background-color: #5c6bc0;
+}
+
+.view:hover {
+  background-color: #3f51b5;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: 1px solid #5c6bc0;
+  background: white;
+  color: #5c6bc0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #5c6bc0;
+  color: white;
+}
+
+.pagination button:disabled {
+  border-color: #ddd;
+  color: #ddd;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #666;
+}
+
+.image-container {
+  width: 80px;
+  height: 120px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+</style>
   
   
