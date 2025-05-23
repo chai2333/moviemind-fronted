@@ -24,7 +24,7 @@ api.interceptors.response.use(
   err => {
     if (err.response?.status === 401) {
       // token 过期或未登录，跳转登录页
-      window.location.href = '/login/'
+      router.push('/login')
     }
     return Promise.reject(err)
   }

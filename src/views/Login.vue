@@ -22,10 +22,6 @@
             class="input-field"
           />
         </el-form-item>
-        <!-- <div class="auth-links">
-          <span class="link">短信登录</span>
-          <span class="link">忘记密码</span>
-        </div> -->
         <el-form-item>
           <el-button type="primary" class="auth-btn" @click="onSubmit">
             登录
@@ -58,13 +54,13 @@ const form = reactive({
 async function onSubmit() {
   try {
     await auth.login({ username: form.identifier, password: form.password })
-    ElMessage.success('登录成功！')           // ← 新增：登录成功提示
+    ElMessage.success('登录成功！')         
     router.push({ name: 'Home' })
   } catch (err) {
     const msg = err.response?.data?.detail
               || err.response?.data?.non_field_errors?.[0]
               || '登录失败，请检查用户名或密码'
-    ElMessage.error(msg)                 // ← 新增：登录失败提示
+    ElMessage.error(msg)                
   }
 }
 </script>

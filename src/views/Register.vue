@@ -21,34 +21,8 @@
             placeholder="密码"
             class="input-field"
           />
-          <!-- <small class="hint">* 要求密码中包含大小写字母和数字，至少8位</small> -->
         </el-form-item>
-        <!-- <el-form-item prop="confirm">
-          <el-input
-            v-model="form.confirm"
-            type="password"
-            placeholder="确认密码"
-            class="input-field"
-          />
-          <small class="hint">* 要求此次密码和上次一致</small>
-        </el-form-item>
-        <el-form-item prop="phone">
-          <el-input
-            v-model="form.phone"
-            placeholder="手机号"
-            class="input-field"
-          />
-        </el-form-item>
-        <el-form-item prop="captcha" class="captcha-row">
-          <el-input
-            v-model="form.captcha"
-            placeholder=""
-            class="input-field captcha-input"
-          />
-          <el-button type="text" class="send-btn" @click="sendCaptcha">
-            发送验证码
-          </el-button>
-        </el-form-item>-->
+
         <el-form-item>
           <el-button type="primary" class="auth-btn" @click="onSubmit">
             注册
@@ -79,29 +53,21 @@ const form = reactive({
 })
 
 
-// async function onSubmit() {
-//   await register({
-//     username: form.username,
-//     password: form.password
-//   })
-//   router.push({ name: 'Login' })
-// }
 async function onSubmit() {
   try {
     await register({
       username: form.username,
       password: form.password
     })
-    ElMessage.success('注册成功，请登录！')       // ← 新增：注册成功提示
+    ElMessage.success('注册成功，请登录！')       
     router.push({ name: 'Login' })
   } catch (err) {
-    // 从后端返回里提取错误信息
     const data = err.response?.data || {}
     let msg = '注册失败'
     if (data.username)      msg = data.username[0]
     else if (data.password) msg = data.password[0]
     else if (data.detail)   msg = data.detail
-    ElMessage.error(msg)    // ← 新增：注册失败提示
+    ElMessage.error(msg)    
   }
 }
 </script>

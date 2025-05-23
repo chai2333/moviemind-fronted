@@ -36,26 +36,15 @@
       </div>
     </div>
 
-    <!--  调试用：打印当前 movies 数组 -->
-    <!-- <pre style="background:#f5f5f5; padding:1em; margin-top:1em;">
-{{ JSON.stringify(movies, null, 2) }}
-</pre> -->
-
   </template>
   
   <script setup>
 
-  //后端
   import { ref, onMounted } from 'vue'
   import api from '@/services/api'
   import { useRouter } from 'vue-router'
   import no_poster from '@/assets/no_poster.png'
 
-  //模拟
-  // import { ref, onMounted } from 'vue'
-  // import { mockMovies } from '@/services/mockMovies.js'
-  // import { useRouter } from 'vue-router'
-  
   const movies = ref([])
   const router = useRouter()
   
@@ -84,7 +73,7 @@
       const imgs = parseImages(m.large_images)
       return {
       id: m.id,
-      image: imgs[0] || m.photoUrls?.[0] || '/default-poster.png',
+      image: imgs[0] || m.photoUrls?.[0] || no_poster,
       name: m.name || m.title,
       director: m.director || '',
       summary: m.summary || '',
