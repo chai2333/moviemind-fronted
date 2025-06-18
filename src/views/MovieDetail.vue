@@ -157,6 +157,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AdminMovieActions from '@/components/AdminMovieActions.vue'
 import { toggleFollow } from '@/services/user'
+import no_avatar from '@/assets/default-avatar.png'
 
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -184,7 +185,7 @@ const handleImgError = (e) => {
 }
 
 const handleAvatarError = (e) => {
-  e.target.src = '/default-avatar.png'
+  e.target.src = '@/assets/default-avatar.png'
 }
 
 async function fetchComments(forceReload = false) {
@@ -210,7 +211,7 @@ async function fetchComments(forceReload = false) {
         const commentData = {
           ...comment,
           username: comment.user_name,
-          avatar: comment.user_avatar || '/default-avatar.png'
+          avatar: comment.user_avatar || no_avatar
         }
 
         // 获取关注状态
@@ -229,7 +230,7 @@ async function fetchComments(forceReload = false) {
         return {
           ...comment,
           username: comment.user_name,
-          avatar: comment.user_avatar || '/default-avatar.png',
+          avatar: comment.user_avatar || no_avatar,
           is_following: false
         }
       }

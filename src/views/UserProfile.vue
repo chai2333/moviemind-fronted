@@ -8,7 +8,7 @@
       <p><strong>年龄：</strong>{{ form.age }}</p>
       <p><strong>简介：</strong>{{ form.introduce }}</p>
       <p><strong>喜好标签：</strong>
-        <el-tag v-for="t in form.like_tags" :key="t" type="success">{{ t }}</el-tag>
+        <el-tag v-for="t in form.tag" :key="t" type="success">{{ t }}</el-tag>
       </p>
       <p><strong>避雷标签：</strong>
         <el-tag v-for="t in form.dislike_tags" :key="t" type="danger">{{ t }}</el-tag>
@@ -26,7 +26,7 @@
           <el-form-item label="简介"><el-input type="textarea" v-model="form.introduce" /></el-form-item>
 
           <el-form-item label="喜好标签">
-            <el-select v-model="form.like_tags" multiple placeholder="选择喜好标签" style="width: 100%">
+            <el-select v-model="form.tag" multiple placeholder="选择喜好标签" style="width: 100%">
               <el-option v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
             </el-select>
           </el-form-item>
@@ -85,7 +85,7 @@ const form = reactive({
   phone_number: '',
   age: null,
   introduce: '',
-  like_tags: [],
+  tag: [],
   dislike_tags: []
 })
 
@@ -135,7 +135,7 @@ async function onUpdate() {
     if (form.phone_number?.trim()) updateData.phone_number = form.phone_number.trim()
     if (form.age) updateData.age = parseInt(form.age)
     if (form.introduce?.trim()) updateData.introduce = form.introduce.trim()
-    if (form.like_tags?.length) updateData.like_tags = form.like_tags
+    if (form.tag?.length) updateData.tag = form.tag
     if (form.dislike_tags?.length) updateData.dislike_tags = form.dislike_tags
 
     // 如果没有要更新的数据
