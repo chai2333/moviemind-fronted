@@ -14,6 +14,13 @@
         热门电影榜单
       </router-link>
       <router-link
+        to="/personal"
+        class="navbar-menu-item"
+        active-class="active"
+      >
+        个性推荐
+      </router-link>
+      <router-link
         to="/ai"
         class="navbar-menu-item"
         active-class="active"

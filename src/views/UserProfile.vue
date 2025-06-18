@@ -1,6 +1,22 @@
 <template>
   <div class="user-profile">
-    <div class="profile-form" v-if="auth.user?.role !== 'admin'">
+    <div v-if="!isEdit && auth.user?.role !== 'admin'" class="profile-view">
+      <p><strong>用户名：</strong>{{ form.username }}</p>
+      <p><strong>邮箱：</strong>{{ form.email }}</p>
+      <p><strong>性别：</strong>{{ form.gender }}</p>
+      <p><strong>电话：</strong>{{ form.phone_number }}</p>
+      <p><strong>年龄：</strong>{{ form.age }}</p>
+      <p><strong>简介：</strong>{{ form.introduce }}</p>
+      <p><strong>喜好标签：</strong>
+        <el-tag v-for="t in form.like_tags" :key="t" type="success">{{ t }}</el-tag>
+      </p>
+      <p><strong>避雷标签：</strong>
+        <el-tag v-for="t in form.dislike_tags" :key="t" type="danger">{{ t }}</el-tag>
+      </p>
+      <el-button type="primary" @click="isEdit = true">编辑</el-button>
+    </div>
+
+    <div class="profile-form" v-else-if="auth.user?.role !== 'admin'">
       <el-form :model="form" label-width="100px">
           <el-form-item label="用户名"><el-input v-model="form.username" /></el-form-item>
           <el-form-item label="邮箱"><el-input v-model="form.email" /></el-form-item>
@@ -10,20 +26,19 @@
           <el-form-item label="简介"><el-input type="textarea" v-model="form.introduce" /></el-form-item>
 
           <el-form-item label="喜好标签">
-            <el-tag v-for="(tag, index) in form.like_tags || []" :key="index" type="success" closable @close="form.like_tags.splice(index, 1)">
-              {{ tag }}
-            </el-tag>
-            <el-input v-model="newLikeTag" placeholder="添加标签" size="small" @keyup.enter="addLikeTag" />
+            <el-select v-model="form.like_tags" multiple placeholder="选择喜好标签" style="width: 100%">
+              <el-option v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
+            </el-select>
           </el-form-item>
 
           <el-form-item label="避雷标签">
-            <el-tag v-for="(tag, index) in form.dislike_tags || []" :key="index" type="danger" closable @close="form.dislike_tags.splice(index, 1)">
-              {{ tag }}
-            </el-tag>
-            <el-input v-model="newDislikeTag" placeholder="添加标签" size="small" @keyup.enter="addDislikeTag" />
+            <el-select v-model="form.dislike_tags" multiple placeholder="选择避雷标签" style="width: 100%">
+              <el-option v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
+            </el-select>
           </el-form-item>
 
-          <el-button type="primary" @click="onUpdate">更新</el-button>
+          <el-button type="primary" @click="onUpdate">保存</el-button>
+          <el-button @click="isEdit = false">取消</el-button>
       </el-form>
     </div>
 
@@ -56,6 +71,8 @@ import api from '@/services/api'
 import { getFollowings } from '@/services/user'
 import { ElMessage } from 'element-plus'
 const auth = useAuthStore()
+const isEdit = ref(false)
+const tagOptions = ['剧情','动作','喜剧','爱情','科幻','恐怖','悬疑','犯罪','冒险']
 const form = reactive({
   username: '',
   email: '',
@@ -67,24 +84,7 @@ const form = reactive({
   dislike_tags: []
 })
 
-const newLikeTag = ref('')
-const newDislikeTag = ref('')
-
 const followings = ref([])
-
-function addLikeTag() {
-  if (newLikeTag.value && !form.like_tags.includes(newLikeTag.value)) {
-    form.like_tags.push(newLikeTag.value)
-  }
-  newLikeTag.value = ''
-}
-
-function addDislikeTag() {
-  if (newDislikeTag.value && !form.dislike_tags.includes(newDislikeTag.value)) {
-    form.dislike_tags.push(newDislikeTag.value)
-  }
-  newDislikeTag.value = ''
-}
 
 async function fetchData() {
   try {
@@ -136,6 +136,7 @@ async function onUpdate() {
     ElMessage.success('更新成功')
     // 更新成功后重新获取用户信息
     await fetchData()
+    isEdit.value = false
   } catch (err) {
     console.error('更新用户信息失败:', err)
     ElMessage.error(err.response?.data?.message || '更新失败')
@@ -193,6 +194,10 @@ onMounted(fetchData)
 }
 .el-button--danger {
   border-radius: 20px;
+}
+
+.profile-view p {
+  margin: 4px 0;
 }
 
 .following ul {
