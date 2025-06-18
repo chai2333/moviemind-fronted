@@ -12,42 +12,23 @@
       </div>
     </div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>电影海报</th>
-            <th>电影名称</th>
-            <th>导演</th>
-            <th>年份</th>
-            <th>评分</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="movie in filteredMovies" :key="movie.id">
-            <td>
-              <div class="image-container">
-                <img 
-                  :src="movie.image || '/default-movie.png'" 
-                  :alt="movie.name"
-                  @error="handleImgError"
-                  referrerpolicy="no-referrer"
-                />
-              </div>
-            </td>
-            <td>{{ movie.name }}</td>
-            <td>{{ movie.director }}</td>
-            <td>{{ movie.year }}</td>
-            <td>{{ movie.rating }}</td>
-            <td>
-              <router-link :to="'/movie/' + movie.id" class="action-btn view">
-                查看详情
-              </router-link>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="cards">
+      <div v-for="movie in filteredMovies" :key="movie.id" class="movie-card">
+        <img
+          :src="movie.image || '/default-movie.png'"
+          :alt="movie.name"
+          @error="handleImgError"
+          referrerpolicy="no-referrer"
+        />
+        <div class="info">
+          <h3>{{ movie.name }}</h3>
+          <p>{{ movie.director }} / {{ movie.year }}</p>
+          <p class="rating">评分：{{ movie.rating }}</p>
+        </div>
+        <router-link :to="'/movie/' + movie.id" class="action-btn view">
+          查看详情
+        </router-link>
+      </div>
     </div>
 
     <div class="pagination">
@@ -152,51 +133,60 @@ onMounted(fetchMovies)
   width: 200px;
 }
 
-.table-container {
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.movie-card {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-table {
+.movie-card img {
   width: 100%;
-  border-collapse: collapse;
+  height: 250px;
+  object-fit: cover;
 }
 
-th, td {
+.movie-card .info {
   padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #eee;
+  flex: 1;
 }
 
-th {
-  background-color: #f5f5f5;
-  font-weight: 600;
+.movie-card h3 {
+  margin: 0;
+  font-size: 16px;
   color: #333;
 }
 
-td img {
-  width: 80px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.action-btn {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: white;
+.movie-card p {
+  margin: 4px 0;
+  color: #666;
   font-size: 14px;
 }
 
-.view {
-  background-color: #5c6bc0;
+.movie-card .rating {
+  color: #ff9800;
 }
 
-.view:hover {
+.action-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 0;
+  background-color: #5c6bc0;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transition: background 0.3s ease;
+}
+
+.action-btn:hover {
   background-color: #3f51b5;
 }
 
@@ -233,21 +223,5 @@ td img {
   color: #666;
 }
 
-.image-container {
-  width: 80px;
-  height: 120px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 </style>
   
