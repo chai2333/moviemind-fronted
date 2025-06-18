@@ -211,14 +211,15 @@ onMounted(async () => {
   justify-content: flex-start;
 }
 
+
 .movie-card {
-  width: 160px;
+  width: 120px;
   flex-shrink: 0;
 }
 
 .movie-card img {
   width: 100%;
-  height: 240px;
+  height: 180px;
   object-fit: cover;
   border-radius: 8px;
   transition: transform 0.3s ease;
@@ -238,3 +239,4 @@ onMounted(async () => {
   white-space: nowrap;
 }
 </style>
+

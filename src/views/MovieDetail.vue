@@ -90,7 +90,9 @@
       <div v-if="movie?.comments?.length > 0">
         <div v-for="comment in movie.comments" :key="comment.comment_id" class="comment">
           <div class="comment-body">
-            <strong>{{ comment.username }}</strong> 
+            <router-link :to="`/user/${comment.user_id}`">
+              <strong>{{ comment.username }}</strong>
+            </router-link>
             <p>{{ comment.comment_content }}</p>
             <div class="meta" v-if="comment.comment_updated_time">
               {{ new Date(comment.comment_updated_time).toLocaleString() }}
@@ -199,6 +201,7 @@ async function fetchComments(forceReload = false) {
         comment_id: comment.comment_id,
         comment_content: comment.comment_content,
         movie_id: comment.movie_id,
+        user_id: comment.user_id,
         username: comment.username || '未知用户',
         comment_updated_time: comment.comment_updated_time,
         rating: comment.rating || 0

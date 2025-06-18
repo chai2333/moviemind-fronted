@@ -1,12 +1,9 @@
 <template>
   <div class="user-profile">
-    <el-tabs v-model="activeTab" tab-position="top">
-      <el-tab-pane v-if="auth.user?.role !== 'admin'" label="历史记录" name="history">
-        <HistoryPreview />
-      </el-tab-pane>
+    <HistoryPreview v-if="auth.user?.role !== 'admin'" />
 
-      <el-tab-pane v-if="auth.user?.role !== 'admin'" label="个人资料" name="profile">
-        <el-form :model="form" label-width="100px">
+    <div class="profile-form" v-if="auth.user?.role !== 'admin'">
+      <el-form :model="form" label-width="100px">
           <el-form-item label="用户名"><el-input v-model="form.username" /></el-form-item>
           <el-form-item label="邮箱"><el-input v-model="form.email" /></el-form-item>
           <el-form-item label="性别"><el-input v-model="form.gender" /></el-form-item>
@@ -29,19 +26,24 @@
           </el-form-item>
 
           <el-button type="primary" @click="onUpdate">更新</el-button>
-        </el-form>
-      </el-tab-pane>
+      </el-form>
+    </div>
 
-      <el-tab-pane label="设置" name="settings">
-        <el-button @click="switchAccount">切换账号</el-button>
-        <el-button type="danger" @click="logout">退出登录</el-button>
-      </el-tab-pane>
+    <div class="settings">
+      <el-button @click="switchAccount">切换账号</el-button>
+      <el-button type="danger" @click="logout">退出登录</el-button>
+    </div>
 
-      <el-tab-pane v-if="auth.user?.role === 'admin'" label="举报审核" name="report">
-        <AdminReport />
-      </el-tab-pane>
+    <div class="following" v-if="followings.length">
+      <h3>关注列表</h3>
+      <ul>
+        <li v-for="f in followings" :key="f.id">
+          <router-link :to="`/user/${f.followed_id}`">{{ f.followed_name }}</router-link>
+        </li>
+      </ul>
+    </div>
 
-    </el-tabs>
+    <AdminReport v-if="auth.user?.role === 'admin'" />
   </div>
 </template>
 
@@ -51,9 +53,8 @@ import { useAuthStore } from '@/store/auth'
 import HistoryPreview from './HistoryDetail.vue'
 import AdminReport from './AdminReport.vue'
 import api from '@/services/api'
+import { getFollowings } from '@/services/user'
 import { ElMessage } from 'element-plus'
-
-const activeTab = ref('history')
 const auth = useAuthStore()
 const form = reactive({
   username: '',
@@ -68,6 +69,8 @@ const form = reactive({
 
 const newLikeTag = ref('')
 const newDislikeTag = ref('')
+
+const followings = ref([])
 
 function addLikeTag() {
   if (newLikeTag.value && !form.like_tags.includes(newLikeTag.value)) {
@@ -87,6 +90,8 @@ async function fetchData() {
   try {
     const res = await api.get('/userinfo')
     Object.assign(form, res.data || {})
+    const followRes = await getFollowings()
+    followings.value = followRes.data.results || []
   } catch (err) {
     console.error('获取用户信息失败:', err)
   }
@@ -189,4 +194,13 @@ onMounted(fetchData)
 .el-button--danger {
   border-radius: 20px;
 }
+
+.following ul {
+  list-style: none;
+  padding: 0;
+}
+.following li {
+  margin: 4px 0;
+}
 </style>
+

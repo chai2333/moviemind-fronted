@@ -18,6 +18,7 @@ const routes = [
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
   { path: '/user', name: 'UserProfile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
+  { path: '/user/:id', name: 'UserPage', component: () => import('@/views/UserPage.vue'), meta: { requiresAuth: true } },
   { path: '/admin/reports', name: 'AdminReport', component: () => import('@/views/AdminReport.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
   { path: '/profile', name: 'Profile', component: () => import('@/views/UserProfile.vue'), meta: { requiresAuth: true } },
   { path: '/history/:type', name: 'HistoryDetail', component: () => import('@/views/HistoryDetail.vue'), props: true },
