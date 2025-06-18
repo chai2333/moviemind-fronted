@@ -1,4 +1,5 @@
 import api from './api'
+import { useAuthStore } from '@/store/auth'
 
 export function getProfile() {
   return api.get('/userinfo')
@@ -13,15 +14,55 @@ export function getUser(id) {
 }
 
 export function getFollowings() {
-  // 获取当前用户的关注列表，默认一次取完
-  return api.get('/interact/follow/', { params: { limit: 1000, offset: 0 } })
+  return api.get('/interact/follow/')
 }
 
-export function followUser(id) {
-  return api.post('/interact/follow/', { followed_id: id })
+export function getFollowers() {
+  return api.get('/interact/follow/')
 }
 
-export function unfollow(followId) {
-  return api.delete(`/interact/follow/${followId}/`)
+export async function toggleFollow(followedId) {
+  try {
+    console.log('开始关注操作:', { followedId })
+    
+    // 检查 followedId 是否有效
+    if (!followedId) {
+      throw new Error('无效的用户ID')
+    }
+    
+    // 检查是否已登录
+    const auth = useAuthStore()
+    if (!auth.accessToken) {
+      throw new Error('请先登录')
+    }
+    
+    const response = await api.post('/interact/follow/', { followed_id: followedId })
+    console.log('关注操作成功:', response.data)
+    return response
+  } catch (error) {
+    console.error('关注操作失败:', {
+      error,
+      response: error.response?.data,
+      status: error.response?.status,
+      message: error.message
+    })
+    throw error
+  }
+}
+
+export function getLikes() {
+  return api.get('/interact/like/')
+}
+
+export function getHistory() {
+  return api.get('/interact/history/')
+}
+
+export function getCollects() {
+  return api.get('/interact/collect/')
+}
+
+export function getComments() {
+  return api.get('/interact/comment/')
 }
 
