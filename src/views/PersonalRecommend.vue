@@ -31,12 +31,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/store/auth'
 import api from '@/services/api'
 import no_poster from '@/assets/no_poster.png'
 
 const router = useRouter()
-const auth = useAuthStore()
 const movies = ref([])
 
 function parseImages(field) {
@@ -53,27 +51,23 @@ function goDetail(id) {
 }
 
 async function fetchRecommend() {
-  if (!auth.user || !auth.user.tag?.length) return
-  const res = await api.get('/movie/movie/', { params: { offset: 0, limit: 1000 } })
-  const list = res.data.results || res.data || []
-  movies.value = list.filter(m => {
-    try {
-      const tags = JSON.parse(m.tags)
-      return tags.some(t => auth.user.tag.includes(t))
-    } catch {
-      return false
-    }
-  }).map(m => {
-    const imgs = parseImages(m.large_images || m.small_images || '')
-    return {
-      id: m.id,
-      image: imgs[0] || no_poster,
-      name: m.name,
-      director: m.director || '',
-      summary: m.summary || '',
-      rating: m.rating || 0
-    }
-  })
+  try {
+    const res = await api.get('/movie/myrecommend/')
+    const list = res.data.results || res.data || []
+    movies.value = list.map(m => {
+      const imgs = parseImages(m.large_images || m.small_images || '')
+      return {
+        id: m.id,
+        image: imgs[0] || no_poster,
+        name: m.name,
+        director: m.director || '',
+        summary: m.summary || '',
+        rating: m.rating || 0
+      }
+    })
+  } catch (err) {
+    console.error('获取个性推荐失败:', err)
+  }
 }
 
 onMounted(fetchRecommend)
