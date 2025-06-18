@@ -7,7 +7,7 @@
       <el-table-column prop="content" label="评论内容" />
       <el-table-column label="操作" width="120">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="approve(scope.row)">封禁</el-button>
+          <el-button type="danger" size="small" @click="approve(scope.row)">封禁</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -29,7 +29,7 @@ async function fetchComments() {
       id: item.comment_id,
       movieName: item.movie_name,
       userName: item.user_name,
-      content: item.comment_content
+      content: item.content
     }))
   } catch (err) {
     console.error('获取评论列表失败', err)
