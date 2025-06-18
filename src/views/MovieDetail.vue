@@ -96,15 +96,30 @@
                 @error="handleAvatarError"
               />
               <div class="user-details">
-                <strong>{{ comment.username }}</strong>
-                <el-button 
-                  v-if="comment.user_id !== auth.user?.id"
-                  size="small" 
-                  :type="comment.is_following ? 'info' : 'primary'"
-                  @click="handleFollow(Number(comment.user_id))"
+                <router-link 
+                  :to="{ name: 'UserPage', params: { id: comment.user_id }}"
+                  class="username-link"
                 >
-                  {{ comment.is_following ? '已关注' : '关注' }}
-                </el-button>
+                  <strong>{{ comment.username }}</strong>
+                </router-link>
+                <div class="action-buttons">
+                  <el-button 
+                    v-if="comment.user_id !== auth.user?.id"
+                    size="small" 
+                    :type="comment.is_following ? 'info' : 'primary'"
+                    @click="handleFollow(Number(comment.user_id))"
+                  >
+                    {{ comment.is_following ? '已关注' : '关注' }}
+                  </el-button>
+                  <el-button
+                    size="small"
+                    :type="comment.is_liked ? 'danger' : 'default'"
+                    @click="handleCommentLike(comment)"
+                    class="like-button"
+                  >
+                    {{ comment.is_liked ? '❤️ ' : '💗 ' }}
+                  </el-button>
+                </div>
               </div>
             </div>
             <p>{{ comment.comment_content }}</p>
@@ -536,6 +551,17 @@ async function handleFollow(userId) {
     ElMessage.error(err.message || '操作失败')
   }
 }
+
+function handleCommentLike(comment) {
+  // 切换点赞状态
+  comment.is_liked = !comment.is_liked;
+  // 更新点赞数
+  if (comment.is_liked) {
+    comment.likes = (comment.likes || 0) + 1;
+  } else {
+    comment.likes = Math.max((comment.likes || 0) - 1, 0);
+  }
+}
 </script>
 
 <style scoped>
@@ -848,5 +874,41 @@ async function handleFollow(userId) {
   font-size: 12px;
   color: #999;
   margin-top: 8px;
+}
+
+.username-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.username-link:hover {
+  color: #5c6bc0;
+}
+
+.username-link strong {
+  font-size: 16px;
+  color: #333;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.like-button {
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+
+.like-button.el-button--danger {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.like-button.el-button--danger:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
 }
 </style>
