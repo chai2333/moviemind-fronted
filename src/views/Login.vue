@@ -22,6 +22,34 @@
             class="input-field"
           />
         </el-form-item>
+
+        <el-form-item prop="phone">
+          <el-input
+            v-model="form.phone"
+            placeholder="手机号"
+            class="input-field"
+          />
+        </el-form-item>
+
+        <el-form-item prop="code">
+          <el-input
+            v-model="form.code"
+            placeholder="验证码"
+            class="input-field code-field"
+          >
+            <template #append>
+              <el-button
+                class="code-btn"
+                :disabled="countdown > 0"
+                @click="getCode"
+              >
+                <span v-if="countdown > 0">{{ countdown }}s 后重试</span>
+                <span v-else>获取验证码</span>
+              </el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+        
         <el-form-item>
           <el-button type="primary" class="auth-btn" @click="onSubmit">
             登录
@@ -38,7 +66,7 @@
 
 <script setup>
 import { ElMessage } from 'element-plus'
-import { reactive } from 'vue'
+import { reactive, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
@@ -47,7 +75,9 @@ const auth = useAuthStore()
 
 const form = reactive({
   identifier: '',
-  password: ''
+  password: '',
+  phone: '',
+  code: ''
 })
 
 
@@ -63,6 +93,35 @@ async function onSubmit() {
     ElMessage.error(msg)                
   }
 }
+
+// 倒计时状态
+const countdown = ref(0)
+let timerId = null
+
+async function getCode() {
+  if (countdown.value > 0) return
+  if (!form.phone) {
+    ElMessage.error('请输入手机号')
+    return
+  }
+  try {
+    // TODO: 换成你自己调用发送验证码的接口
+    // await auth.sendSmsCode(form.phone)
+    ElMessage.success('验证码已发送')
+    // 启动 60s 倒计时
+    countdown.value = 60
+    timerId = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        clearInterval(timerId)
+        timerId = null
+      }
+    }, 1000)
+  } catch {
+    ElMessage.error('发送验证码失败')
+  }
+}
+
 </script>
 
 <style scoped>
@@ -95,4 +154,16 @@ async function onSubmit() {
   margin-left: 4px;
   color: #5c6bc0;
 }
+
+.code-field .el-input__inner {
+  width: calc(100% - 110px);
+  display: inline-block;
+}
+
+.code-btn {
+  border-radius: 20px;
+  margin: 0;
+  padding: 0 12px;
+}
+
 </style>
