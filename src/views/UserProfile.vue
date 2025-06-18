@@ -90,6 +90,7 @@ async function fetchData() {
   try {
     const res = await api.get('/userinfo')
     Object.assign(form, res.data || {})
+    form.like_tags = res.data.tag || []
     const followRes = await getFollowings()
     followings.value = followRes.data.results || []
   } catch (err) {
@@ -123,8 +124,7 @@ async function onUpdate() {
     if (form.phone_number?.trim()) updateData.phone_number = form.phone_number.trim()
     if (form.age) updateData.age = parseInt(form.age)
     if (form.introduce?.trim()) updateData.introduce = form.introduce.trim()
-    if (form.like_tags?.length) updateData.like_tags = form.like_tags
-    if (form.dislike_tags?.length) updateData.dislike_tags = form.dislike_tags
+    if (form.like_tags?.length) updateData.tag = form.like_tags
 
     // 如果没有要更新的数据
     if (Object.keys(updateData).length === 0) {
@@ -133,6 +133,7 @@ async function onUpdate() {
     }
 
     await api.patch('/userinfo/me/', updateData)
+    await auth.fetchCurrentUser()
     ElMessage.success('更新成功')
     // 更新成功后重新获取用户信息
     await fetchData()

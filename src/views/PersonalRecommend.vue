@@ -53,13 +53,13 @@ function goDetail(id) {
 }
 
 async function fetchRecommend() {
-  if (!auth.user || !auth.user.like_tags?.length) return
+  if (!auth.user || !auth.user.tag?.length) return
   const res = await api.get('/movie/movie/', { params: { offset: 0, limit: 1000 } })
   const list = res.data.results || res.data || []
   movies.value = list.filter(m => {
     try {
       const tags = JSON.parse(m.tags)
-      return tags.some(t => auth.user.like_tags.includes(t))
+      return tags.some(t => auth.user.tag.includes(t))
     } catch {
       return false
     }

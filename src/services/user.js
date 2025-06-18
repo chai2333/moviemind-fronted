@@ -13,14 +13,14 @@ export function getUser(id) {
 }
 
 export function getFollowings() {
-  return api.get('/user/follow/')
+  return api.get('/interact/follow/')
 }
 
 export function followUser(id) {
-  return api.post('/user/follow/', { user_id: id })
+  return api.post('/interact/follow/', { followed_id: id })
 }
 
 export function unfollow(followId) {
-  return api.delete(`/user/follow/${followId}/`)
+  return api.delete(`/interact/follow/${followId}/`)
 }
 
