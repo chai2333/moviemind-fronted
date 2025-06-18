@@ -47,9 +47,14 @@
     <div class="following" v-if="followings.length">
       <h3>我的关注</h3>
       <div class="following-list">
-        <span v-for="f in followings" :key="f.id" class="following-item">
+        <router-link 
+          v-for="f in followings" 
+          :key="f.id" 
+          :to="{ name: 'UserPage', params: { id: f.followed_id }}"
+          class="following-item"
+        >
           {{ f.followed_name }}
-        </span>
+        </router-link>
       </div>
     </div>
 
@@ -91,7 +96,14 @@ async function fetchData() {
     const res = await api.get('/userinfo')
     Object.assign(form, res.data || {})
     const followRes = await getFollowings()
-    followings.value = followRes.data.results || []
+    // 使用 Map 去重，以 followed_id 为 key
+    const uniqueFollowings = new Map()
+    followRes.data.results.forEach(follow => {
+      if (!uniqueFollowings.has(follow.followed_id)) {
+        uniqueFollowings.set(follow.followed_id, follow)
+      }
+    })
+    followings.value = Array.from(uniqueFollowings.values())
   } catch (err) {
     console.error('获取用户信息失败:', err)
   }
