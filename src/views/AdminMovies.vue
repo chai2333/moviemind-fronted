@@ -41,11 +41,60 @@
           </div>
           <div class="movie-actions">
             <el-button type="primary" @click="editMovie(movie)">编辑</el-button>
-            <el-button type="danger" @click="deleteMovie(movie.movie_id)">删除</el-button>
+            <el-button type="danger" @click="deleteMovie(movie.id)">删除</el-button>
           </div>
         </div>
       </div>
     </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      title="编辑电影"
+      width="50%"
+    >
+      <el-form :model="editingMovie" label-width="100px">
+        <el-form-item label="电影名称">
+          <el-input v-model="editingMovie.name" />
+        </el-form-item>
+        <el-form-item label="导演">
+          <el-input v-model="editingMovie.director" />
+        </el-form-item>
+        <el-form-item label="主演">
+          <el-input v-model="editingMovie.actors" />
+        </el-form-item>
+        <el-form-item label="类型">
+          <el-input v-model="editingMovie.tags" />
+        </el-form-item>
+        <el-form-item label="年份">
+          <el-input v-model="editingMovie.pubdate" />
+        </el-form-item>
+        <el-form-item label="地区">
+          <el-input v-model="editingMovie.countries" />
+        </el-form-item>
+        <el-form-item label="语言">
+          <el-input v-model="editingMovie.language" />
+        </el-form-item>
+        <el-form-item label="时长">
+          <el-input v-model="editingMovie.durations" />
+        </el-form-item>
+        <el-form-item label="评分">
+          <el-input-number v-model="editingMovie.rating" :precision="1" :step="0.1" :min="0" :max="10" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="editingMovie.summary" type="textarea" :rows="4" />
+        </el-form-item>
+        <el-form-item label="海报">
+          <el-input v-model="editingMovie.large_images" placeholder="大图URL" />
+          <el-input v-model="editingMovie.small_images" placeholder="小图URL" class="mt-2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveMovie">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
     <el-pagination
       v-if="total > 0"
@@ -68,6 +117,8 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const searchQuery = ref('')
+const dialogVisible = ref(false)
+const editingMovie = ref({})
 
 function handleImgError(e) {
   e.target.src = '/default-movie.png'
@@ -101,6 +152,11 @@ function handlePageChange(page) {
 }
 
 async function deleteMovie(movieId) {
+  if (!movieId) {
+    ElMessage.error('电影ID无效')
+    return
+  }
+
   try {
     await ElMessageBox.confirm('确定要删除这部电影吗？', '警告', {
       type: 'warning'
@@ -117,8 +173,52 @@ async function deleteMovie(movieId) {
 }
 
 function editMovie(movie) {
-  // TODO: 实现编辑功能
-  ElMessage.info('编辑功能开发中...')
+  const processedMovie = {
+    ...movie,
+    actors: movie.actors?.replace(/[\[\]']/g, '') || '',
+    tags: movie.tags?.replace(/[\[\]']/g, '') || '',
+    countries: movie.countries?.replace(/[\[\]']/g, '') || '',
+    language: movie.language?.replace(/[\[\]']/g, '') || '',
+    durations: movie.durations?.replace(/[\[\]']/g, '') || '',
+    pubdate: movie.pubdate?.replace(/[\[\]']/g, '') || ''
+  }
+  editingMovie.value = processedMovie
+  dialogVisible.value = true
+}
+
+async function saveMovie() {
+  try {
+    const movieData = {
+      ...editingMovie.value,
+      name: editingMovie.value.name || '',
+      director: editingMovie.value.director || '',
+      actors: editingMovie.value.actors ? `[${editingMovie.value.actors}]` : '[]',
+      tags: editingMovie.value.tags ? `[${editingMovie.value.tags}]` : '[]',
+      countries: editingMovie.value.countries ? `[${editingMovie.value.countries}]` : '[]',
+      language: editingMovie.value.language ? `[${editingMovie.value.language}]` : '[]',
+      durations: editingMovie.value.durations ? `[${editingMovie.value.durations}]` : '[]',
+      pubdate: editingMovie.value.pubdate ? `[${editingMovie.value.pubdate}]` : '[]',
+      summary: editingMovie.value.summary || '',
+      large_images: editingMovie.value.large_images || '',
+      small_images: editingMovie.value.small_images || '',
+      rating: editingMovie.value.rating || 0,
+      like_count: editingMovie.value.like_count || 0
+    }
+
+    delete movieData.id
+
+    await api.put(`/movie/movie/${editingMovie.value.id}/`, movieData)
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+    fetchMovies()
+  } catch (err) {
+    console.error('保存电影失败:', err)
+    if (err.response?.data) {
+      ElMessage.error(`保存失败: ${JSON.stringify(err.response.data)}`)
+    } else {
+      ElMessage.error('保存失败')
+    }
+  }
 }
 
 onMounted(fetchMovies)
@@ -202,5 +302,15 @@ onMounted(fetchMovies)
 .el-pagination {
   margin-top: 20px;
   text-align: center;
+}
+
+.mt-2 {
+  margin-top: 8px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style> 
