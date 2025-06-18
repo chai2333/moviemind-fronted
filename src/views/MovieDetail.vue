@@ -1,16 +1,24 @@
 <template>
   <div class="movie-detail">
+    <div
+      class="hero"
+      v-if="movie"
+      :style="{ backgroundImage: `url(${movie.images || '/default-movie.png'})` }"
+    >
+      <div class="hero-overlay">
+        <h2>{{ movie.title || '未命名电影' }}</h2>
+        <div class="stats">
+          👀 {{ movie.browse ?? 0 }}
+          ❤️ {{ movie.likes ?? 0 }}
+          ⭐ {{ movie.rating ?? 0 }}
+        </div>
+      </div>
+    </div>
     <div class="header">
-      <h2>{{ movie?.title || '未命名电影' }}</h2>
-      <AdminMovieActions 
+      <AdminMovieActions
         :movie-id="movie?.movie_id"
         @comment-deleted="handleCommentDeleted"
       />
-      <div class="stats">
-        👀 {{ movie?.browse ?? 0 }}
-        ❤️ {{ movie?.likes ?? 0 }}
-        ⭐ {{ movie?.rating ?? 0 }}
-      </div>
     </div>
 
     <div class="poster-and-tags">
@@ -41,7 +49,19 @@
     </div>
 
     <div class="rating">
-      评分：{{ movie?.rating ?? '暂无' }}/10
+      <div class="score">{{ movie?.rating?.toFixed(1) ?? '暂无' }}/10</div>
+      <div class="stars">
+        <i
+          v-for="n in 5"
+          :key="n"
+          class="el-icon-star-on"
+          :style="starStyle(n, movie?.rating)"
+        />
+      </div>
+    </div>
+
+    <div class="summary">
+      <p>{{ movie?.summary || '暂无简介' }}</p>
     </div>
 
     <div class="ai-comment">
@@ -133,6 +153,13 @@ const replyContent = ref('')
 const currentPage = ref(1)
 const pageSize = ref(5)
 const totalComments = ref(0)
+
+function starStyle(n, rating) {
+  const half = Math.ceil((rating || 0) / 2)
+  if (n <= Math.floor((rating || 0) / 2)) return { color: '#FF9800' }
+  if (n === half) return { color: '#FF980080' }
+  return { color: '#ccc' }
+}
 
 const handleImgError = (e) => {
   e.target.src = '/default-movie.png'
@@ -457,6 +484,34 @@ function handleCommentDeleted(commentId) {
   max-width: 1000px;
   margin: 0 auto;
 }
+.hero {
+  position: relative;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  color: #fff;
+}
+.hero-overlay h2 {
+  font-size: 32px;
+  margin: 0;
+}
+.hero-overlay .stats {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #fff;
+}
 .header {
   display: flex;
   justify-content: space-between;
@@ -514,8 +569,22 @@ function handleCommentDeleted(commentId) {
   margin: 8px 0;
 }
 .rating {
-  font-size: 18px;
   margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rating .score {
+  font-size: 22px;
+  color: #333;
+}
+.rating .stars i {
+  font-size: 20px;
+}
+.summary {
+  margin-top: 20px;
+  line-height: 1.6;
+  color: #555;
 }
 .ai-comment h3 {
   font-size: 18px;
