@@ -82,7 +82,7 @@
         @click="toggle('collected')"
         :class="{ active: movie?.is_collect }"
       >{{ movie?.is_collect ? '⭐ 已收藏' : '☆ 收藏' }}</button>
-      <button v-if="movie?.watched" @click="scrollToComment">💬 评论</button>
+      <button v-if="movie?.watched" @click="scrollToComment">💬 我要评论</button>
 
     </div>
 
@@ -115,7 +115,7 @@
         暂无评论
       </div>
 
-      <div v-if="movie?.watched && !isAdmin" class="add-comment">
+      <div v-if="movie?.watched && !isAdmin && showCommentForm" class="add-comment">
         <h4>我要评论</h4>
         <div class="comment-rating">
           评分：
@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import api from '@/services/api'
 import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
@@ -151,6 +151,7 @@ const route = useRoute()
 const movie = ref(null)
 const newComment = ref('')
 const newCommentRating = ref(0)
+const showCommentForm = ref(false)
 const activeReplyId = ref(null)
 const replyContent = ref('')
 const currentPage = ref(1)
@@ -462,10 +463,13 @@ async function toggleReplyDislike(reply) {
 }
 
 function scrollToComment() {
-  const el = document.querySelector('.add-comment')
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth' })
-  }
+  showCommentForm.value = true
+  nextTick(() => {
+    const el = document.querySelector('.add-comment')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  })
 }
 
 function handleCommentDeleted(commentId) {
