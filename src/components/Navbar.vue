@@ -21,6 +21,13 @@
         个性推荐
       </router-link>
       <router-link
+        to="/friend"
+        class="navbar-menu-item"
+        active-class="active"
+      >
+        友邻推荐
+      </router-link>
+      <router-link
         to="/ai"
         class="navbar-menu-item"
         active-class="active"

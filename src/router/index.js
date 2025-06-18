@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import MovieList from '@/views/MovieList.vue'
 import Recommend from '@/views/Recommend.vue'
 import PersonalRecommend from '@/views/PersonalRecommend.vue'
+import FriendRecommend from '@/views/FriendRecommend.vue'
 import Search from '@/views/Search.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
@@ -14,6 +15,7 @@ const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/movies', name: 'MovieList', component: MovieList },
   { path: '/personal', name: 'PersonalRecommend', component: PersonalRecommend, meta: { requiresAuth: true } },
+  { path: '/friend', name: 'FriendRecommend', component: FriendRecommend, meta: { requiresAuth: true } },
   { path: '/ai', name: 'Recommend', component: Recommend },
   { path: '/search', name: 'Search', component: Search },
   { path: '/movie/:id', name: 'MovieDetail', component: MovieDetail, meta: { requiresAuth: true } },
