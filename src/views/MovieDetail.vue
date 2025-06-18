@@ -70,18 +70,19 @@
     </div>
 
     <div class="actions" v-if="!isAdmin">
-      <button 
-        @click="toggle('watched')" 
+      <button
+        @click="toggle('watched')"
         :class="{ active: movie?.watched }"
       >{{ movie?.watched ? '✅ 已看过' : '👀 看过' }}</button>
-      <button 
-        @click="toggle('liked')" 
+      <button
+        @click="toggle('liked')"
         :class="{ active: movie?.is_like }"
       >{{ movie?.is_like ? '❤️ 已点赞' : '💗 点赞' }}</button>
-      <button 
-        @click="toggle('collected')" 
+      <button
+        @click="toggle('collected')"
         :class="{ active: movie?.is_collect }"
       >{{ movie?.is_collect ? '⭐ 已收藏' : '☆ 收藏' }}</button>
+      <button v-if="movie?.watched" @click="scrollToComment">💬 评论</button>
 
     </div>
 
@@ -457,6 +458,13 @@ async function toggleReplyDislike(reply) {
   } catch (err) {
     console.error('操作失败:', err)
     ElMessage.error('操作失败')
+  }
+}
+
+function scrollToComment() {
+  const el = document.querySelector('.add-comment')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
   }
 }
 

@@ -1,7 +1,5 @@
 <template>
   <div class="user-profile">
-    <HistoryPreview v-if="auth.user?.role !== 'admin'" />
-
     <div class="profile-form" v-if="auth.user?.role !== 'admin'">
       <el-form :model="form" label-width="100px">
           <el-form-item label="用户名"><el-input v-model="form.username" /></el-form-item>
@@ -42,6 +40,8 @@
         </li>
       </ul>
     </div>
+
+    <HistoryPreview v-if="auth.user?.role !== 'admin'" />
 
     <AdminReport v-if="auth.user?.role === 'admin'" />
   </div>
