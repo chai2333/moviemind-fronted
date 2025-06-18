@@ -88,9 +88,17 @@
       <div v-if="movie?.comments?.length > 0">
         <div v-for="comment in movie.comments" :key="comment.comment_id" class="comment">
           <div class="comment-body">
-            <router-link :to="`/user/${comment.user_id}`">
+            <div class="user-info">
               <strong>{{ comment.username }}</strong>
-            </router-link>
+              <el-button 
+                v-if="comment.user_id !== auth.user?.id"
+                size="small" 
+                :type="comment.is_following ? 'info' : 'primary'"
+                @click="handleFollow(Number(comment.user_id))"
+              >
+                {{ comment.is_following ? '已关注' : '关注' }}
+              </el-button>
+            </div>
             <p>{{ comment.comment_content }}</p>
             <div class="meta" v-if="comment.comment_updated_time">
               {{ new Date(comment.comment_updated_time).toLocaleString() }}
@@ -140,6 +148,7 @@ import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AdminMovieActions from '@/components/AdminMovieActions.vue'
+import { toggleFollow } from '@/services/user'
 
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -180,7 +189,28 @@ async function fetchComments(forceReload = false) {
     const start = (currentPage.value - 1) * pageSize.value
     const end = start + pageSize.value
 
-    movie.value.comments = allComments
+    // 获取每个评论者的关注状态
+    const followStatusPromises = allComments.map(async comment => {
+      try {
+        const followRes = await api.get('/interact/follow/', {
+          params: { followed_id: comment.user_id }
+        })
+        return {
+          ...comment,
+          is_following: followRes.data.results?.some(f => f.followed_id === comment.user_id) || false
+        }
+      } catch (err) {
+        console.error('获取关注状态失败:', err)
+        return {
+          ...comment,
+          is_following: false
+        }
+      }
+    })
+
+    const commentsWithFollowStatus = await Promise.all(followStatusPromises)
+
+    movie.value.comments = commentsWithFollowStatus
       .slice(start, end)
       .map(comment => ({
         comment_id: comment.comment_id,
@@ -188,7 +218,8 @@ async function fetchComments(forceReload = false) {
         user_id: comment.user_id,
         username: comment.user_name || '未知用户',
         comment_updated_time: comment.comment_updated_time,
-        likes: comment.comment_likes
+        likes: comment.comment_likes,
+        is_following: comment.is_following
       }))
 
     totalComments.value = allComments.length
@@ -472,6 +503,31 @@ function scrollToComment() {
 function handleCommentDeleted(commentId) {
   movie.value.comments = movie.value.comments.filter(c => c.comment_id !== commentId)
 }
+
+async function handleFollow(userId) {
+  try {
+    console.log('开始关注操作，用户ID:', userId)
+    
+    // 检查 userId 是否有效
+    if (!userId || typeof userId !== 'number') {
+      console.error('无效的用户ID:', userId)
+      ElMessage.error('无效的用户ID')
+      return
+    }
+    
+    const res = await toggleFollow(userId)
+    console.log('关注操作响应:', res)
+    
+    const comment = movie.value.comments.find(c => c.user_id === userId)
+    if (comment) {
+      comment.is_following = res.data.is_following
+    }
+    ElMessage.success(res.data.is_following ? '关注成功' : '已取消关注')
+  } catch (err) {
+    console.error('关注操作失败:', err)
+    ElMessage.error('操作失败')
+  }
+}
 </script>
 
 <style scoped>
@@ -727,5 +783,11 @@ function handleCommentDeleted(commentId) {
   color: #999;
   padding: 20px;
   font-size: 14px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 </style>

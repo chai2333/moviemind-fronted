@@ -46,11 +46,11 @@
 
     <div class="following" v-if="followings.length">
       <h3>我的关注</h3>
-      <ul>
-        <li v-for="f in followings" :key="f.id">
-          <router-link :to="`/user/${f.followed_id}`">{{ f.followed_name }}</router-link>
-        </li>
-      </ul>
+      <div class="following-list">
+        <span v-for="f in followings" :key="f.id" class="following-item">
+          {{ f.followed_name }}
+        </span>
+      </div>
     </div>
 
     <AdminReport v-if="auth.user?.role === 'admin'" />
@@ -90,7 +90,6 @@ async function fetchData() {
   try {
     const res = await api.get('/userinfo')
     Object.assign(form, res.data || {})
-    form.like_tags = res.data.tag || []
     const followRes = await getFollowings()
     followings.value = followRes.data.results || []
   } catch (err) {
@@ -124,7 +123,8 @@ async function onUpdate() {
     if (form.phone_number?.trim()) updateData.phone_number = form.phone_number.trim()
     if (form.age) updateData.age = parseInt(form.age)
     if (form.introduce?.trim()) updateData.introduce = form.introduce.trim()
-    if (form.like_tags?.length) updateData.tag = form.like_tags
+    if (form.like_tags?.length) updateData.like_tags = form.like_tags
+    if (form.dislike_tags?.length) updateData.dislike_tags = form.dislike_tags
 
     // 如果没有要更新的数据
     if (Object.keys(updateData).length === 0) {
@@ -133,7 +133,6 @@ async function onUpdate() {
     }
 
     await api.patch('/userinfo/me/', updateData)
-    await auth.fetchCurrentUser()
     ElMessage.success('更新成功')
     // 更新成功后重新获取用户信息
     await fetchData()
@@ -201,12 +200,29 @@ onMounted(fetchData)
   margin: 4px 0;
 }
 
-.following ul {
-  list-style: none;
-  padding: 0;
+.following {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
 }
-.following li {
-  margin: 4px 0;
+
+.following h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.following-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.following-item {
+  padding: 5px 12px;
+  background: #f0f2f5;
+  border-radius: 15px;
+  color: #666;
 }
 </style>
 
