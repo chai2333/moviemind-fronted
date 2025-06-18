@@ -27,13 +27,10 @@
       </el-form>
     </div>
 
-    <div class="settings">
-      <el-button @click="switchAccount">切换账号</el-button>
-      <el-button type="danger" @click="logout">退出登录</el-button>
-    </div>
+    <HistoryPreview v-if="auth.user?.role !== 'admin'" />
 
     <div class="following" v-if="followings.length">
-      <h3>关注列表</h3>
+      <h3>我的关注</h3>
       <ul>
         <li v-for="f in followings" :key="f.id">
           <router-link :to="`/user/${f.followed_id}`">{{ f.followed_name }}</router-link>
@@ -41,9 +38,12 @@
       </ul>
     </div>
 
-    <HistoryPreview v-if="auth.user?.role !== 'admin'" />
-
     <AdminReport v-if="auth.user?.role === 'admin'" />
+
+    <div class="settings">
+      <el-button @click="switchAccount">切换账号</el-button>
+      <el-button type="danger" @click="logout">退出登录</el-button>
+    </div>
   </div>
 </template>
 
