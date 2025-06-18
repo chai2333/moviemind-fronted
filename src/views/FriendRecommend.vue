@@ -1,6 +1,9 @@
 <template>
   <div class="friend-recommend">
-    <h2>友邻推荐</h2>
+    <div class="header">
+      <h2>友邻推荐</h2>
+      <el-button class="refresh-btn" size="small" @click="fetchRecommend">刷新</el-button>
+    </div>
     <div v-if="!movies.length" class="empty">暂无推荐内容</div>
     <div class="list-container">
       <div
@@ -75,7 +78,8 @@ onMounted(fetchRecommend)
 
 <style scoped>
 .friend-recommend { padding: 24px; }
-.friend-recommend h2 { text-align: center; margin-bottom: 16px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.header h2 { margin: 0; }
 .list-container { max-height: calc(100vh - 200px); overflow-y: auto; }
 .movie-item { display: flex; padding: 12px; background: #fff; border-radius: 8px; margin-bottom: 12px; cursor: pointer; }
 .movie-item img { width: 80px; height: 120px; object-fit: cover; border-radius: 4px; margin-right: 16px; }
@@ -84,4 +88,5 @@ onMounted(fetchRecommend)
 .movie-item .summary { color: #555; font-size: 14px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .meta { width: 80px; text-align: right; }
 .empty { text-align: center; color: #888; margin-top: 40px; }
+.refresh-btn { margin-left: 8px; }
 </style>
