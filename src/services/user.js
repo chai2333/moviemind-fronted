@@ -10,7 +10,9 @@ export function updateProfile(data) {
 }
 
 export function getUser(id) {
-  return api.get(`/userinfo/${id}/`)
+  return api.get('/userinfo/getbyid', {
+    params: { user_id: id }
+  })
 }
 
 export function getFollowings() {
@@ -38,7 +40,15 @@ export async function toggleFollow(followedId) {
     
     const response = await api.post('/interact/follow/', { followed_id: followedId })
     console.log('关注操作成功:', response.data)
-    return response
+    
+    // 确保返回正确的关注状态
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        is_following: response.data.is_following ?? true
+      }
+    }
   } catch (error) {
     console.error('关注操作失败:', {
       error,

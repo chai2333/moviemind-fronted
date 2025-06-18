@@ -87,20 +87,25 @@
       <h3>评论区</h3>
       <div v-if="movie?.comments?.length > 0">
         <div v-for="comment in movie.comments" :key="comment.comment_id" class="comment">
-          <img :src="comment.avatar || defaultAvatar" class="avatar" alt="avatar" />
           <div class="comment-body">
             <div class="user-info">
-              <router-link :to="`/user/${comment.user_id}`" class="username">
-                {{ comment.username }}
-              </router-link>
-              <el-button
-                v-if="comment.user_id !== auth.user?.id"
-                size="small"
-                :type="comment.is_following ? 'info' : 'primary'"
-                @click="handleFollow(Number(comment.user_id))"
-              >
-                {{ comment.is_following ? '已关注' : '关注' }}
-              </el-button>
+              <img 
+                :src="comment.avatar || '/default-avatar.png'" 
+                :alt="comment.username"
+                class="user-avatar"
+                @error="handleAvatarError"
+              />
+              <div class="user-details">
+                <strong>{{ comment.username }}</strong>
+                <el-button 
+                  v-if="comment.user_id !== auth.user?.id"
+                  size="small" 
+                  :type="comment.is_following ? 'info' : 'primary'"
+                  @click="handleFollow(Number(comment.user_id))"
+                >
+                  {{ comment.is_following ? '已关注' : '关注' }}
+                </el-button>
+              </div>
             </div>
             <p>{{ comment.comment_content }}</p>
             <div class="meta" v-if="comment.comment_updated_time">
@@ -151,8 +156,7 @@ import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AdminMovieActions from '@/components/AdminMovieActions.vue'
-import { toggleFollow, getUser } from '@/services/user'
-import defaultAvatar from '@/assets/default-avatar.png'
+import { toggleFollow } from '@/services/user'
 
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -178,6 +182,11 @@ function starStyle(n, rating) {
 const handleImgError = (e) => {
   e.target.src = '/default-movie.png'
 }
+
+const handleAvatarError = (e) => {
+  e.target.src = '/default-avatar.png'
+}
+
 async function fetchComments(forceReload = false) {
   try {
     const res = await api.get('/movie/moviecomment/', {
@@ -188,52 +197,49 @@ async function fetchComments(forceReload = false) {
     })
 
     const allComments = res.data.comment_list || []
+    console.log('获取到的评论列表:', allComments)
 
     // 计算分页
     const start = (currentPage.value - 1) * pageSize.value
     const end = start + pageSize.value
 
-    const detailPromises = allComments.map(async comment => {
-      const [avatar, is_following] = await Promise.all([
-        getUser(comment.user_id).then(res => res.data.avatar).catch(() => ''),
-        api
-          .get('/interact/follow/', { params: { followed_id: comment.user_id } })
-          .then(res =>
-            res.data.results?.some(f => f.followed_id === comment.user_id) || false
-          )
-          .catch(() => false)
-      ])
-      return { ...comment, avatar, is_following }
-    })
+    // 获取每个评论者的关注状态
+    const commentsWithUserInfo = await Promise.all(allComments.map(async comment => {
+      try {
+        // 使用评论中的用户信息
+        const commentData = {
+          ...comment,
+          username: comment.user_name,
+          avatar: comment.user_avatar || '/default-avatar.png'
+        }
 
-    const commentsWithInfo = await Promise.all(detailPromises)
+        // 获取关注状态
+        if (comment.user_id) {
+          const followRes = await api.get('/interact/follow/', {
+            params: { followed_id: comment.user_id }
+          })
+          commentData.is_following = followRes.data.results?.some(f => f.followed_id === comment.user_id) || false
+        } else {
+          commentData.is_following = false
+        }
 
-    movie.value.comments = commentsWithInfo
-      .slice(start, end)
-      .map(comment => ({
-        comment_id: comment.comment_id,
-        comment_content: comment.comment_content,
-        user_id: comment.user_id,
-        username: comment.user_name || '未知用户',
-        avatar: comment.avatar,
-        comment_updated_time: comment.comment_updated_time,
-        likes: comment.comment_likes,
-        is_following: comment.is_following
-      }))
+        return commentData
+      } catch (err) {
+        console.error('获取关注状态失败:', err)
+        return {
+          ...comment,
+          username: comment.user_name,
+          avatar: comment.user_avatar || '/default-avatar.png',
+          is_following: false
+        }
+      }
+    }))
 
+    movie.value.comments = commentsWithUserInfo.slice(start, end)
     totalComments.value = allComments.length
-
-    console.log('分页参数:', {
-      currentPage: currentPage.value,
-      pageSize: pageSize.value,
-      start,
-      end
-    })
-    console.log('最终显示的评论:', movie.value.comments)
-    console.log('评论总数:', totalComments.value)
   } catch (err) {
     console.error('获取评论失败:', err)
-    ElMessage.error('加载评论失败')
+    ElMessage.error('获取评论失败')
   }
 }
 
@@ -505,26 +511,28 @@ function handleCommentDeleted(commentId) {
 
 async function handleFollow(userId) {
   try {
-    console.log('开始关注操作，用户ID:', userId)
-    
-    // 检查 userId 是否有效
-    if (!userId || typeof userId !== 'number') {
-      console.error('无效的用户ID:', userId)
+    if (!userId) {
       ElMessage.error('无效的用户ID')
       return
     }
-    
+
     const res = await toggleFollow(userId)
-    console.log('关注操作响应:', res)
-    
-    const comment = movie.value.comments.find(c => c.user_id === userId)
-    if (comment) {
-      comment.is_following = res.data.is_following
+    // 更新评论列表中该用户的关注状态
+    if (movie.value?.comments) {
+      movie.value.comments = movie.value.comments.map(comment => {
+        if (comment.user_id === userId) {
+          return {
+            ...comment,
+            is_following: res.data.is_following
+          }
+        }
+        return comment
+      })
     }
     ElMessage.success(res.data.is_following ? '关注成功' : '已取消关注')
   } catch (err) {
     console.error('关注操作失败:', err)
-    ElMessage.error('操作失败')
+    ElMessage.error(err.message || '操作失败')
   }
 }
 </script>
@@ -664,11 +672,14 @@ async function handleFollow(userId) {
   color: #FF9800;
 }
 .comment {
-  display: flex;
   margin-bottom: 20px;
   padding: 15px;
   background: #fafafa;
   border-radius: 8px;
+  transition: all 0.3s ease;
+}
+.comment:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 .avatar {
   width: 50px;
@@ -677,15 +688,6 @@ async function handleFollow(userId) {
   margin-right: 10px;
   object-fit: cover;
   background-color: #f0f0f0;
-}
-.username {
-  font-weight: bold;
-  color: #333;
-  margin-right: 10px;
-  text-decoration: none;
-}
-.username:hover {
-  color: #5c6bc0;
 }
 .comment-body {
   flex: 1;
@@ -701,7 +703,7 @@ async function handleFollow(userId) {
 .meta {
   font-size: 12px;
   color: #999;
-  margin-top: 5px;
+  margin-top: 8px;
 }
 .action-btn {
   background: none;
@@ -796,7 +798,54 @@ async function handleFollow(userId) {
 .user-info {
   display: flex;
   align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #5c6bc0;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+}
+
+.user-details strong {
+  font-size: 16px;
+  color: #333;
+}
+
+.comment {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.comment:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.comment-body {
+  flex: 1;
+}
+
+.comment-body p {
+  margin: 8px 0;
+  line-height: 1.6;
+  color: #666;
+}
+
+.meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
 }
 </style>
