@@ -68,7 +68,7 @@
 }
 
   async function fetchMovies() {
-    const res = await api.get('/movie/movie/', { params: { offset:0, limit:100 } })
+    const res = await api.get('/movie/myrecommend/top_movie/', { params: { offset:0, limit:100 } })
     movies.value = (res.data.results || res.data).map(m => {
       const imgs = parseImages(m.large_images)
       return {
