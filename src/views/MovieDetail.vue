@@ -29,22 +29,19 @@
         class="poster"
         referrerpolicy="no-referrer"
       />
-      <div class="tags">
-        <span v-for="tag in (movie?.tags || '').split(',')" :key="tag" class="tag">{{ tag }}</span>
-        <el-popover trigger="hover" placement="right" :width="300">
-          <template #reference>
-            <span class="more-info">更多信息</span>
-          </template>
-          <div class="more-info-content">
-            <p>导演：{{ movie?.directors || '未知' }}</p>
-            <p>主演：{{ movie?.actor || '暂无信息' }}</p>
-            <p>类型：{{ movie?.genres || '未知' }}</p>
-            <p>年份：{{ movie?.year || '未知' }}</p>
-            <p>地区：{{ movie?.countries || '未知' }}</p>
-            <p>语言：{{ movie?.languages || '未知' }}</p>
-            <p>时长：{{ movie?.durations || '未知' }}</p>
-          </div>
-        </el-popover>
+      <div class="info-wrapper">
+        <div class="tags">
+          <span v-for="tag in (movie?.tags || '').split(',')" :key="tag" class="tag">{{ tag }}</span>
+        </div>
+        <div class="more-info-content">
+          <p>导演：{{ movie?.directors || '未知' }}</p>
+          <p>主演：{{ movie?.actor || '暂无信息' }}</p>
+          <p>类型：{{ movie?.genres || '未知' }}</p>
+          <p>年份：{{ movie?.year || '未知' }}</p>
+          <p>地区：{{ movie?.countries || '未知' }}</p>
+          <p>语言：{{ movie?.languages || '未知' }}</p>
+          <p>时长：{{ movie?.durations || '未知' }}</p>
+        </div>
       </div>
     </div>
 
@@ -520,6 +517,12 @@ function handleCommentDeleted(commentId) {
   display: flex;
   margin-top: 20px;
 }
+.info-wrapper {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .poster {
   width: 200px;
   height: 300px;
@@ -527,7 +530,7 @@ function handleCommentDeleted(commentId) {
   object-fit: cover;
 }
 .tags {
-  margin-left: 20px;
+  margin-bottom: 10px;
 }
 .tag {
   display: inline-block;
@@ -542,20 +545,6 @@ function handleCommentDeleted(commentId) {
 .tag:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-.more-info {
-  display: inline-block;
-  color: #5c6bc0;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 16px;
-  font-size: 16px;
-  margin: 8px;
-  background-color: #f5f5f5;
-  transition: all 0.3s ease;
-}
-.more-info:hover {
-  background-color: #e0e0e0;
 }
 .more-info-content {
   line-height: 1.8;
