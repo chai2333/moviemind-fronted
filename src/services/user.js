@@ -13,7 +13,8 @@ export function getUser(id) {
 }
 
 export function getFollowings() {
-  return api.get('/interact/follow/')
+  // 获取当前用户的关注列表，默认一次取完
+  return api.get('/interact/follow/', { params: { limit: 1000, offset: 0 } })
 }
 
 export function followUser(id) {
