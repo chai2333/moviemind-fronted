@@ -169,9 +169,31 @@ onMounted(fetchData)
 
 <style scoped>
 .user-profile {
-  padding: 20px;
+  padding: 100px;
   background-color: #f9f9f9;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  font-size:18px;
 }
+
+.profile-view {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 .profile-title {
   font-size: 22px;
   font-weight: bold;
@@ -237,4 +259,3 @@ onMounted(fetchData)
   color: #666;
 }
 </style>
-

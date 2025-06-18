@@ -92,17 +92,23 @@ onMounted(async () => {
 
 <style scoped>
 .user-page {
-  padding: 20px;
-  max-width: 800px;
+  padding: 100px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
 }
 
 .profile-info {
   background: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .user-header {
@@ -130,6 +136,7 @@ onMounted(async () => {
 
 .user-details {
   margin-bottom: 20px;
+  font-size:18px;
 }
 
 .user-details p {
@@ -179,4 +186,3 @@ onMounted(async () => {
   color: white;
 }
 </style>
-
