@@ -7,7 +7,7 @@
       <el-table-column prop="content" label="评论内容" />
       <el-table-column label="操作" width="120">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="approve(scope.row)">通过</el-button>
+          <el-button type="primary" size="small" @click="approve(scope.row)">封禁</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -40,7 +40,7 @@ async function fetchComments() {
 async function approve(row) {
   try {
     await api.get(`/admin/comment/${row.id}/visible`)
-    ElMessage.success('评论已通过')
+    ElMessage.error('评论已封禁')
     comments.value = comments.value.filter(c => c.id !== row.id)
   } catch (err) {
     console.error('审核失败', err)
