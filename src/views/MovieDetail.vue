@@ -87,12 +87,15 @@
       <h3>评论区</h3>
       <div v-if="movie?.comments?.length > 0">
         <div v-for="comment in movie.comments" :key="comment.comment_id" class="comment">
+          <img :src="comment.avatar || defaultAvatar" class="avatar" alt="avatar" />
           <div class="comment-body">
             <div class="user-info">
-              <strong>{{ comment.username }}</strong>
-              <el-button 
+              <router-link :to="`/user/${comment.user_id}`" class="username">
+                {{ comment.username }}
+              </router-link>
+              <el-button
                 v-if="comment.user_id !== auth.user?.id"
-                size="small" 
+                size="small"
                 :type="comment.is_following ? 'info' : 'primary'"
                 @click="handleFollow(Number(comment.user_id))"
               >
@@ -148,7 +151,8 @@ import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AdminMovieActions from '@/components/AdminMovieActions.vue'
-import { toggleFollow } from '@/services/user'
+import { toggleFollow, getUser } from '@/services/user'
+import defaultAvatar from '@/assets/default-avatar.png'
 
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -189,34 +193,29 @@ async function fetchComments(forceReload = false) {
     const start = (currentPage.value - 1) * pageSize.value
     const end = start + pageSize.value
 
-    // 获取每个评论者的关注状态
-    const followStatusPromises = allComments.map(async comment => {
-      try {
-        const followRes = await api.get('/interact/follow/', {
-          params: { followed_id: comment.user_id }
-        })
-        return {
-          ...comment,
-          is_following: followRes.data.results?.some(f => f.followed_id === comment.user_id) || false
-        }
-      } catch (err) {
-        console.error('获取关注状态失败:', err)
-        return {
-          ...comment,
-          is_following: false
-        }
-      }
+    const detailPromises = allComments.map(async comment => {
+      const [avatar, is_following] = await Promise.all([
+        getUser(comment.user_id).then(res => res.data.avatar).catch(() => ''),
+        api
+          .get('/interact/follow/', { params: { followed_id: comment.user_id } })
+          .then(res =>
+            res.data.results?.some(f => f.followed_id === comment.user_id) || false
+          )
+          .catch(() => false)
+      ])
+      return { ...comment, avatar, is_following }
     })
 
-    const commentsWithFollowStatus = await Promise.all(followStatusPromises)
+    const commentsWithInfo = await Promise.all(detailPromises)
 
-    movie.value.comments = commentsWithFollowStatus
+    movie.value.comments = commentsWithInfo
       .slice(start, end)
       .map(comment => ({
         comment_id: comment.comment_id,
         comment_content: comment.comment_content,
         user_id: comment.user_id,
         username: comment.user_name || '未知用户',
+        avatar: comment.avatar,
         comment_updated_time: comment.comment_updated_time,
         likes: comment.comment_likes,
         is_following: comment.is_following
@@ -665,6 +664,7 @@ async function handleFollow(userId) {
   color: #FF9800;
 }
 .comment {
+  display: flex;
   margin-bottom: 20px;
   padding: 15px;
   background: #fafafa;
@@ -677,6 +677,15 @@ async function handleFollow(userId) {
   margin-right: 10px;
   object-fit: cover;
   background-color: #f0f0f0;
+}
+.username {
+  font-weight: bold;
+  color: #333;
+  margin-right: 10px;
+  text-decoration: none;
+}
+.username:hover {
+  color: #5c6bc0;
 }
 .comment-body {
   flex: 1;

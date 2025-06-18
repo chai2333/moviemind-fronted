@@ -38,6 +38,15 @@ const routes = [
       requiresAuth: true,
       requiresAdmin: true
     }
+  },
+  {
+    path: '/admin/comments',
+    name: 'AdminComments',
+    component: () => import('@/views/AdminComments.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    }
   }
 ]
 
