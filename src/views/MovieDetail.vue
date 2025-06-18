@@ -168,47 +168,31 @@ const handleImgError = (e) => {
 }
 async function fetchComments(forceReload = false) {
   try {
-    // 获取所有评论
-    const commentRes = await api.get('/interact/comment', { 
+    const res = await api.get('/movie/moviecomment/', {
       params: {
-        ordering: '-comment_updated_time',
-        limit: 1000,  // 使用一个较大的值确保获取所有评论
+        movie_id: route.params.id,
         _: forceReload ? Date.now() : undefined
       }
     })
-    
-    // 获取当前电影ID
-    const currentMovieId = parseInt(route.params.id)
-    
-    console.log('获取到的所有评论:', commentRes.data.results)
-    console.log('当前电影ID:', currentMovieId)
-    
-    // 筛选当前电影的评论
-    const filteredComments = commentRes.data.results.filter(
-      comment => comment.movie_id === currentMovieId
-    )
-    
-    console.log('筛选后的评论:', filteredComments)
-    
+
+    const allComments = res.data.comment_list || []
+
     // 计算分页
     const start = (currentPage.value - 1) * pageSize.value
     const end = start + pageSize.value
-    
-    // 更新评论数据
-    movie.value.comments = filteredComments
+
+    movie.value.comments = allComments
       .slice(start, end)
       .map(comment => ({
         comment_id: comment.comment_id,
         comment_content: comment.comment_content,
-        movie_id: comment.movie_id,
         user_id: comment.user_id,
-        username: comment.username || '未知用户',
+        username: comment.user_name || '未知用户',
         comment_updated_time: comment.comment_updated_time,
-        rating: comment.rating || 0
+        likes: comment.comment_likes
       }))
-    
-    // 更新总数（使用筛选后的评论数量）
-    totalComments.value = filteredComments.length
+
+    totalComments.value = allComments.length
 
     console.log('分页参数:', {
       currentPage: currentPage.value,
