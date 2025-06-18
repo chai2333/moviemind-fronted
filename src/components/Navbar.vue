@@ -53,9 +53,7 @@
       <template v-if="isAuth">
         <div class="user-info" @click="goProfile">
           <img
-            :src="auth.user.avatar || defaultAvatar"
-            class="avatar"
-            alt="头像"
+            src="https://tongij-test.oss-cn-shanghai.aliyuncs.com/movie/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250618161950.jpg"
           />
           <span class="username">{{ auth.user.username }}</span>
         </div>
