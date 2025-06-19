@@ -3,7 +3,7 @@
     <div
       class="hero"
       v-if="movie"
-      :style="{ backgroundImage: `url(${movie.images || '/default-movie.png'})` }"
+      :style="{ backgroundImage: `url(${movie.images || no_poster})` }"
     >
       <div class="hero-overlay">
         <h2>{{ movie.title || '未命名电影' }}</h2>
@@ -23,7 +23,7 @@
 
     <div class="poster-and-tags">
       <img
-        :src="movie?.images || '/default-movie.png'"
+        :src="movie?.images || no_poster"
         alt="电影海报"
         @error="handleImgError"
         class="poster"
@@ -173,6 +173,7 @@ import { ElMessage } from 'element-plus'
 import AdminMovieActions from '@/components/AdminMovieActions.vue'
 import { toggleFollow } from '@/services/user'
 import no_avatar from '@/assets/default-avatar.png'
+import no_poster from '@/assets/no_poster.png'
 
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -196,7 +197,7 @@ function starStyle(n, rating) {
 }
 
 const handleImgError = (e) => {
-  e.target.src = '/default-movie.png'
+  e.target.src = no_poster
 }
 
 const handleAvatarError = (e) => {
